@@ -57,6 +57,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** citar de memória sem verificar — descartado por risco de erro factual em uma referência bibliográfica de um artigo IEEE.
 - **Impacto no artigo:** seção *Related Work* e lista de referências (`\bibitem`) de `paper/main.tex`.
 
+## [2026-09-26 15:10] Repositório remoto no GitHub
+
+- **Contexto:** o trabalho final exige entrega em repositório GitHub. O usuário criou manualmente o repositório vazio em `https://github.com/pedro-remus/psi5120-trabalho-final` e forneceu a URL.
+- **Decisão:** remote `origin` configurado apontando para essa URL; branch local renomeada de `master` para `main` (padrão atual do GitHub); push inicial feito com sucesso (`git push -u origin main`).
+- **Alternativas consideradas:** nenhuma — passo mecânico.
+- **Impacto no artigo:** nenhum diretamente, mas a URL do repositório deve ser citada no artigo/relatório final como entregável de código, conforme pedido nas instruções do trabalho.
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

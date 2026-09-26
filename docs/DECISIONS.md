@@ -71,6 +71,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** guardar evidências dentro de `results/` junto dos CSVs/gráficos — descartado para manter a separação entre "dados quantitativos do experimento" (`results/`) e "prova de execução manual" (`evidencias/`), que têm propósitos e formatos diferentes.
 - **Impacto no artigo:** nenhuma seção nova, mas é a fonte primária para preencher os `[PREENCHER]` da seção *Experimental Evaluation* e para eventuais capturas de tela que se queira incluir como figuras adicionais.
 
+## [2026-09-26 16:05] Artefato interativo do roteiro (Claude Artifact)
+
+- **Contexto:** o usuário pediu uma versão do roteiro de execução utilizável como referência rápida durante a implantação na AWS, além do markdown já existente em `docs/ROTEIRO_EXECUCAO.md`.
+- **Decisão:** publicado um Artifact (checklist interativo) espelhando o conteúdo do roteiro — https://claude.ai/code/artifact/ea8b5593-734b-451e-b787-0068966f9084 — com os 25 itens de verificação, comandos com botão de copiar, tabela de troubleshooting e barra de progresso. O progresso marcado é persistido (via capacidade `db` do Artifact, por usuário, com fallback em `localStorage` do navegador se a sincronização não estiver disponível). O `docs/ROTEIRO_EXECUCAO.md` continua sendo a fonte de verdade versionada no repositório; o Artifact é um complemento de uso, não substitui a documentação.
+- **Alternativas consideradas:** nenhuma — atende diretamente ao pedido.
+- **Impacto no artigo:** nenhum diretamente; é uma ferramenta operacional, não um artefato de pesquisa a ser citado.
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

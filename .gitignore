@@ -1,0 +1,27 @@
+# Credenciais - nunca commitar
+.env
+*.pem
+*.key
+credentials
+credentials.json
+aws_credentials*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# LaTeX
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz
+paper/*.fdb_latexmk
+paper/*.fls
+
+# SO
+.DS_Store
+Thumbs.db

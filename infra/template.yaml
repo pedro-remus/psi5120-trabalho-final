@@ -1,0 +1,657 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  PSI5120 - Trabalho Final. Extensao do laboratorio serverless da Aula 07
+  (Lambda + SQS + DLQ) com API Gateway (ingestao HTTP), DynamoDB (persistencia
+  idempotente), alarme CloudWatch + SNS (observabilidade) e dashboard.
+  Ver docs/DECISIONS.md para o raciocinio de cada escolha de arquitetura.
+
+Parameters:
+  Ambiente:
+    Type: String
+    Default: didatico
+  FalhaControlada:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'true'
+  NotificationEmail:
+    Type: String
+    Description: >
+      E-mail que recebera o alarme quando houver mensagens na DLQ.
+      Apos o deploy, a AWS envia um e-mail de confirmacao de assinatura
+      que precisa ser clicado manualmente (ver docs/ROTEIRO_EXECUCAO.md).
+
+Resources:
+
+  # ---------------------------------------------------------------------
+  # Persistencia
+  # ---------------------------------------------------------------------
+  EventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${AWS::StackName}-events'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: event_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: event_id
+          KeyType: HASH
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  # ---------------------------------------------------------------------
+  # Filas (herdadas da Aula 07, mesma configuracao)
+  # ---------------------------------------------------------------------
+  DLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${AWS::StackName}-dlq'
+      MessageRetentionPeriod: 345600
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  MainQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${AWS::StackName}-queue'
+      VisibilityTimeout: 30
+      MessageRetentionPeriod: 86400
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DLQ.Arn
+        maxReceiveCount: 2
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  # ---------------------------------------------------------------------
+  # Notificacao (DLQ -> alarme -> SNS -> e-mail)
+  # ---------------------------------------------------------------------
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${AWS::StackName}-alarmes'
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  NotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref NotificationTopic
+      Protocol: email
+      Endpoint: !Ref NotificationEmail
+
+  DlqAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-dlq-com-mensagens'
+      AlarmDescription: Dispara quando ha pelo menos 1 mensagem visivel na DLQ.
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt DLQ.QueueName
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref NotificationTopic
+      OKActions:
+        - !Ref NotificationTopic
+
+  # ---------------------------------------------------------------------
+  # IAM
+  # ---------------------------------------------------------------------
+  ProducerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-producer'
+      RetentionInDays: 3
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  ConsumerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-consumer'
+      RetentionInDays: 3
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  ProducerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-producer-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: psi5120-tf-producer-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-producer:*'
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt MainQueue.Arn
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  ConsumerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-consumer-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: psi5120-tf-consumer-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-consumer:*'
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt MainQueue.Arn
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource: !GetAtt EventsTable.Arn
+              - Effect: Allow
+                # cloudwatch:PutMetricData nao suporta restricao por Resource;
+                # a AWS exige Resource "*" para essa acao (limitacao documentada
+                # em docs/DECISIONS.md).
+                Action:
+                  - cloudwatch:PutMetricData
+                Resource: '*'
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  # ---------------------------------------------------------------------
+  # Funcoes Lambda
+  # ---------------------------------------------------------------------
+  ProducerFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: ProducerLogGroup
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-producer'
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Handler: index.lambda_handler
+      Timeout: 5
+      MemorySize: 128
+      Role: !GetAtt ProducerRole.Arn
+      Environment:
+        Variables:
+          AMBIENTE: !Ref Ambiente
+          QUEUE_URL: !Ref MainQueue
+      Code:
+        ZipFile: |
+          import json
+          import os
+          import uuid
+          from datetime import datetime, timezone
+
+          import boto3
+
+          QUEUE_URL = os.environ["QUEUE_URL"]
+          AMBIENTE = os.environ.get("AMBIENTE", "didatico")
+
+          sqs = boto3.client("sqs")
+
+
+          def _now():
+              return datetime.now(timezone.utc).isoformat()
+
+
+          def _resposta(status_code, corpo):
+              return {
+                  "statusCode": status_code,
+                  "headers": {"Content-Type": "application/json"},
+                  "body": json.dumps(corpo, ensure_ascii=False),
+              }
+
+
+          def lambda_handler(event, context):
+              request_id = getattr(context, "aws_request_id", "contexto-local")
+
+              corpo_bruto = event.get("body")
+              if event.get("isBase64Encoded"):
+                  import base64
+
+                  corpo_bruto = base64.b64decode(corpo_bruto or "").decode("utf-8")
+
+              if not corpo_bruto:
+                  return _resposta(400, {"erro": "Corpo da requisicao vazio; envie um objeto JSON."})
+
+              try:
+                  payload = json.loads(corpo_bruto)
+              except json.JSONDecodeError:
+                  return _resposta(400, {"erro": "Corpo da requisicao nao e um JSON valido."})
+
+              if not isinstance(payload, dict):
+                  return _resposta(400, {"erro": "Corpo da requisicao deve ser um objeto JSON."})
+
+              payload.setdefault("event_id", str(uuid.uuid4()))
+              payload.setdefault("tipo_evento", "nao_definido")
+
+              valor = payload.get("valor")
+              if valor is not None and (isinstance(valor, bool) or not isinstance(valor, (int, float))):
+                  return _resposta(400, {"erro": "Campo 'valor', quando presente, deve ser numerico."})
+
+              log_base = {
+                  "fase": "producer_recebeu",
+                  "ambiente": AMBIENTE,
+                  "request_id": request_id,
+                  "event_id": payload["event_id"],
+                  "tipo_evento": payload["tipo_evento"],
+                  "timestamp": _now(),
+              }
+              print(json.dumps(log_base, ensure_ascii=False))
+
+              sqs.send_message(QueueUrl=QUEUE_URL, MessageBody=json.dumps(payload, ensure_ascii=False))
+
+              print(json.dumps({**log_base, "fase": "producer_publicou"}, ensure_ascii=False))
+
+              return _resposta(
+                  202,
+                  {
+                      "status": "aceito",
+                      "event_id": payload["event_id"],
+                      "mensagem": "Evento publicado na fila para processamento assincrono.",
+                  },
+              )
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  ConsumerFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: ConsumerLogGroup
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-consumer'
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Handler: index.lambda_handler
+      Timeout: 5
+      MemorySize: 128
+      Role: !GetAtt ConsumerRole.Arn
+      Environment:
+        Variables:
+          AMBIENTE: !Ref Ambiente
+          FALHA_CONTROLADA: !Ref FalhaControlada
+          TABLE_NAME: !Ref EventsTable
+          METRIC_NAMESPACE: PSI5120/TrabalhoFinal
+      Code:
+        ZipFile: |
+          import json
+          import os
+          import time
+          from datetime import datetime, timezone
+
+          import boto3
+          from botocore.exceptions import ClientError
+
+          AMBIENTE = os.environ.get("AMBIENTE", "didatico")
+          FALHA_CONTROLADA = os.environ.get("FALHA_CONTROLADA", "true").lower() == "true"
+          TABLE_NAME = os.environ["TABLE_NAME"]
+          METRIC_NAMESPACE = os.environ.get("METRIC_NAMESPACE", "PSI5120/TrabalhoFinal")
+
+          dynamodb = boto3.resource("dynamodb")
+          table = dynamodb.Table(TABLE_NAME)
+          cloudwatch = boto3.client("cloudwatch")
+
+
+          def _now():
+              return datetime.now(timezone.utc).isoformat()
+
+
+          def _parse_record(record):
+              body = record.get("body")
+              if body is None:
+                  raise ValueError("Registro SQS sem campo body")
+
+              try:
+                  payload = json.loads(body)
+              except (json.JSONDecodeError, TypeError) as exc:
+                  raise ValueError("Body da mensagem SQS nao contem JSON valido") from exc
+
+              if not isinstance(payload, dict):
+                  raise ValueError("Body da mensagem SQS deve conter um objeto JSON")
+
+              return payload
+
+
+          def _normalize_event(event):
+              if not isinstance(event, dict):
+                  raise ValueError("O evento Lambda deve ser um objeto JSON")
+
+              if "Records" in event:
+                  records = event.get("Records")
+                  if not isinstance(records, list) or not records:
+                      raise ValueError("Records deve ser uma lista SQS nao vazia")
+                  if len(records) != 1:
+                      raise ValueError(
+                          "A pratica usa BatchSize=1; foi recebido um lote com "
+                          f"{len(records)} registros. Revise o event source mapping."
+                      )
+
+                  rec = records[0]
+                  if not isinstance(rec, dict) or rec.get("eventSource") != "aws:sqs":
+                      raise ValueError("Origem de evento em Records nao suportada nesta pratica")
+
+                  payload = _parse_record(rec)
+                  return {
+                      "modo": "sqs",
+                      "message_id": rec.get("messageId"),
+                      "event_id": payload.get("event_id", rec.get("messageId")),
+                      "tipo_evento": payload.get("tipo_evento", "nao_definido"),
+                      "payload": payload,
+                  }
+
+              return {
+                  "modo": "direto",
+                  "message_id": None,
+                  "event_id": event.get("event_id", "evento-sem-id"),
+                  "tipo_evento": event.get("tipo_evento", "nao_definido"),
+                  "payload": event,
+              }
+
+
+          def _emitir_metrica(tipo_evento, resultado):
+              try:
+                  cloudwatch.put_metric_data(
+                      Namespace=METRIC_NAMESPACE,
+                      MetricData=[
+                          {
+                              "MetricName": "EventosProcessados",
+                              "Value": 1,
+                              "Unit": "Count",
+                              "Dimensions": [
+                                  {"Name": "TipoEvento", "Value": tipo_evento},
+                                  {"Name": "Resultado", "Value": resultado},
+                              ],
+                          }
+                      ],
+                  )
+              except ClientError as exc:
+                  print(json.dumps({"fase": "metrica_falhou", "erro": str(exc)}, ensure_ascii=False))
+
+
+          def _gravar_idempotente(item):
+              try:
+                  table.put_item(
+                      Item=item,
+                      ConditionExpression="attribute_not_exists(event_id)",
+                  )
+                  return True
+              except ClientError as exc:
+                  if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                      return False
+                  raise
+
+
+          def lambda_handler(event, context):
+              request_id = getattr(context, "aws_request_id", "contexto-local")
+
+              try:
+                  norm = _normalize_event(event)
+              except (TypeError, ValueError) as exc:
+                  print(
+                      json.dumps(
+                          {
+                              "fase": "normalizacao",
+                              "resultado": "erro",
+                              "erro": str(exc),
+                              "ambiente": AMBIENTE,
+                              "request_id": request_id,
+                              "timestamp": _now(),
+                          },
+                          ensure_ascii=False,
+                      )
+                  )
+                  raise
+
+              log_base = {
+                  "ambiente": AMBIENTE,
+                  "request_id": request_id,
+                  "event_id": norm["event_id"],
+                  "modo": norm["modo"],
+                  "tipo_evento": norm["tipo_evento"],
+                  "timestamp": _now(),
+              }
+              print(json.dumps({"fase": "inicio", **log_base}, ensure_ascii=False))
+
+              payload = norm["payload"]
+              if FALHA_CONTROLADA and payload.get("forcar_falha") is True:
+                  print(json.dumps({"fase": "falha_controlada", **log_base}, ensure_ascii=False))
+                  _emitir_metrica(norm["tipo_evento"], "falha_controlada")
+                  raise RuntimeError("Falha controlada para demonstrar retry e DLQ")
+
+              valor = payload.get("valor")
+              if valor is not None and (
+                  isinstance(valor, bool) or not isinstance(valor, (int, float))
+              ):
+                  print(
+                      json.dumps(
+                          {"fase": "validacao", "resultado": "valor_invalido", **log_base},
+                          ensure_ascii=False,
+                      )
+                  )
+                  _emitir_metrica(norm["tipo_evento"], "valor_invalido")
+                  raise ValueError("Campo valor deve ser numerico")
+
+              time.sleep(0.05)
+
+              item = {
+                  "event_id": norm["event_id"],
+                  "status": "processado",
+                  "modo": norm["modo"],
+                  "tipo_evento": norm["tipo_evento"],
+                  "ambiente": AMBIENTE,
+                  "request_id": request_id,
+                  "timestamp_processado": _now(),
+              }
+              if valor is not None:
+                  item["valor"] = str(valor)
+
+              gravou = _gravar_idempotente(item)
+              fase = "gravado" if gravou else "duplicata_idempotente"
+              print(json.dumps({"fase": fase, **log_base}, ensure_ascii=False))
+              _emitir_metrica(norm["tipo_evento"], fase)
+
+              resultado = {
+                  "status": "processado",
+                  "idempotente_duplicata": not gravou,
+                  "event_id": norm["event_id"],
+                  "modo": norm["modo"],
+                  "ambiente": AMBIENTE,
+                  "request_id": request_id,
+              }
+              print(json.dumps({"fase": "fim", "resultado": resultado, **log_base}, ensure_ascii=False))
+              return {"statusCode": 200, "body": json.dumps(resultado, ensure_ascii=False)}
+      Tags:
+        - Key: Disciplina
+          Value: PSI5120
+        - Key: Trabalho
+          Value: Final
+
+  ConsumerEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt MainQueue.Arn
+      FunctionName: !Ref ConsumerFunction
+      BatchSize: 1
+      Enabled: true
+
+  # ---------------------------------------------------------------------
+  # API Gateway (HTTP API) - porta de entrada nao existente na Aula 07
+  # ---------------------------------------------------------------------
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub '${AWS::StackName}-api'
+      ProtocolType: HTTP
+      Tags:
+        Disciplina: PSI5120
+        Trabalho: Final
+
+  HttpApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt ProducerFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  HttpApiRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /events'
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: '$default'
+      AutoDeploy: true
+
+  ProducerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ProducerFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/events'
+
+  # ---------------------------------------------------------------------
+  # Observabilidade
+  # ---------------------------------------------------------------------
+  Dashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub '${AWS::StackName}-dashboard'
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0, "y": 0, "width": 12, "height": 6,
+              "properties": {
+                "title": "Invocacoes e erros das Lambdas",
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "metrics": [
+                  ["AWS/Lambda", "Invocations", "FunctionName", "${AWS::StackName}-producer", {"stat": "Sum"}],
+                  ["AWS/Lambda", "Errors", "FunctionName", "${AWS::StackName}-producer", {"stat": "Sum"}],
+                  ["AWS/Lambda", "Invocations", "FunctionName", "${AWS::StackName}-consumer", {"stat": "Sum"}],
+                  ["AWS/Lambda", "Errors", "FunctionName", "${AWS::StackName}-consumer", {"stat": "Sum"}]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12, "y": 0, "width": 12, "height": 6,
+              "properties": {
+                "title": "Mensagens visiveis na fila principal e na DLQ",
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "metrics": [
+                  ["AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", "${AWS::StackName}-queue"],
+                  ["AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", "${AWS::StackName}-dlq"]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0, "y": 6, "width": 12, "height": 6,
+              "properties": {
+                "title": "Eventos processados por resultado (metrica customizada)",
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "metrics": [
+                  ["PSI5120/TrabalhoFinal", "EventosProcessados", "Resultado", "gravado"],
+                  ["PSI5120/TrabalhoFinal", "EventosProcessados", "Resultado", "duplicata_idempotente"],
+                  ["PSI5120/TrabalhoFinal", "EventosProcessados", "Resultado", "falha_controlada"]
+                ]
+              }
+            }
+          ]
+        }
+
+Outputs:
+  ApiEndpoint:
+    Description: URL base da API. Envie POST para <ApiEndpoint>/events
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+  MainQueueUrl:
+    Value: !Ref MainQueue
+  DLQUrl:
+    Value: !Ref DLQ
+  DLQArn:
+    Value: !GetAtt DLQ.Arn
+  EventsTableName:
+    Value: !Ref EventsTable
+  NotificationTopicArn:
+    Value: !Ref NotificationTopic
+  DashboardName:
+    Value: !Ref Dashboard
+  ProducerFunctionName:
+    Value: !Ref ProducerFunction
+  ConsumerFunctionName:
+    Value: !Ref ConsumerFunction

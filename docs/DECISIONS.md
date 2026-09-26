@@ -64,6 +64,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** nenhuma — passo mecânico.
 - **Impacto no artigo:** nenhum diretamente, mas a URL do repositório deve ser citada no artigo/relatório final como entregável de código, conforme pedido nas instruções do trabalho.
 
+## [2026-09-26 15:55] Pasta de evidências de execução
+
+- **Contexto:** o usuário pediu um local no repositório para guardar as evidências da execução (prints, saídas de comando, logs) para alimentar o relatório/artigo depois. As Aulas 04–06 da disciplina já usam uma pasta `evidencias/` com arquivos `E<n>.txt` numerados e uma subpasta `screenshots/` — convenção já estabelecida pelo próprio material do curso.
+- **Decisão:** criada `evidencias/` na raiz do repositório, com subpastas `screenshots/`, `cli-output/` e `logs/`, mais um `evidencias/README.md` com uma tabela de checklist (E1–E9) mapeando cada evidência mínima à seção correspondente de `docs/ROTEIRO_EXECUCAO.md`. O roteiro foi editado para apontar, ao final de cada etapa relevante, onde salvar a evidência daquela etapa.
+- **Alternativas consideradas:** guardar evidências dentro de `results/` junto dos CSVs/gráficos — descartado para manter a separação entre "dados quantitativos do experimento" (`results/`) e "prova de execução manual" (`evidencias/`), que têm propósitos e formatos diferentes.
+- **Impacto no artigo:** nenhuma seção nova, mas é a fonte primária para preencher os `[PREENCHER]` da seção *Experimental Evaluation* e para eventuais capturas de tela que se queira incluir como figuras adicionais.
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

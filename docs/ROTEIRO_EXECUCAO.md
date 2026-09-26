@@ -39,6 +39,8 @@ Convenções usadas abaixo:
    ```
    **O que conferir:** a saída deve mostrar `UserId`, `Account` e `Arn` do usuário IAM que você criou. Se der erro de credenciais, revise o passo 2.2.
 
+   **Evidência a salvar:** cole essa saída em `evidencias/cli-output/E1_identidade_aws.txt` (ver `evidencias/README.md`).
+
 4. **Nunca** coloque essas credenciais em nenhum arquivo do repositório. Elas ficam apenas em `~/.aws/credentials`, gerenciadas pelo próprio comando `aws configure`. O `.gitignore` deste repositório já bloqueia arquivos comuns de credenciais, mas a responsabilidade final é sua: nunca faça `git add` de um arquivo `.env` ou similar com chaves.
 
 ## 3. Deploy da stack CloudFormation
@@ -57,7 +59,11 @@ chmod +x scripts/deploy.sh scripts/cleanup.sh
 - Se aparecer erro `ROLLBACK_COMPLETE` ou `CREATE_FAILED`, veja a seção **Troubleshooting** no final deste documento.
 - Isso demora tipicamente 1 a 3 minutos (bem mais rápido que subir um cluster EKS).
 
+**Evidência a salvar:** cole a saída completa do comando (incluindo a tabela de Outputs) em `evidencias/cli-output/E2_deploy_outputs.txt`.
+
 **Confirme a assinatura do e-mail:** a AWS manda um e-mail de "AWS Notification - Subscription Confirmation" para o endereço que você passou. **Você precisa clicar no link "Confirm subscription"** dentro dele, senão o alarme da DLQ nunca chega até você por e-mail (a stack sobe normalmente mesmo sem essa confirmação, mas a notificação não funciona).
+
+**Evidência a salvar:** print da tela de confirmação em `evidencias/screenshots/E3_confirmacao_sns.png`.
 
 ## 4. Testes manuais dos três cenários
 
@@ -79,6 +85,8 @@ aws dynamodb scan --table-name psi5120-tf-serverless-events --region us-east-1 -
 
 Deve aparecer um item com o `event_id` retornado pela chamada anterior e `"status": "processado"`.
 
+**Evidência a salvar:** cole a resposta do `curl` e do `dynamodb scan` em `evidencias/cli-output/E4_evento_normal.txt`.
+
 ### 4.2 Falha controlada → DLQ
 
 ```bash
@@ -97,6 +105,8 @@ aws sqs get-queue-attributes \
 ```
 
 **O que conferir:** `ApproximateNumberOfMessages` deve ser `1` (ou mais, se você repetiu o teste). Você também deve receber o e-mail de alarme do CloudWatch (se confirmou a assinatura no passo 3).
+
+**Evidência a salvar:** saída do `get-queue-attributes` em `evidencias/cli-output/E5_dlq.txt` e print do e-mail de alarme recebido em `evidencias/screenshots/E5_alarme_email.png`.
 
 > **Atenção:** não faça `aws sqs receive-message` manualmente na fila principal durante esse teste — ler a mensagem manualmente também consome uma tentativa de recebimento e atrapalha a contagem (mesmo alerta já dado no README da Aula 07).
 
@@ -120,6 +130,8 @@ Para ver os logs pelo CLI:
 aws logs tail /aws/lambda/psi5120-tf-serverless-consumer --region us-east-1 --profile psi5120 --since 10m
 ```
 
+**Evidência a salvar:** cole o trecho relevante do log (mostrando `"fase": "gravado"` na primeira execução e `"fase": "duplicata_idempotente"` na segunda) em `evidencias/logs/E6_idempotencia.txt`.
+
 ## 5. Rodar o teste de carga
 
 ```bash
@@ -133,6 +145,8 @@ python3 scripts/load_test.py \
 **O que este comando faz:** dispara 150 requisições (15 simultâneas por vez), sendo ~10% delas com `forcar_falha: true`, mede a latência de cada uma e salva tudo em `results/raw/load_test_<timestamp>.csv`.
 
 **O que conferir:** o resumo impresso no final (taxa de sucesso, latência p50/p95). Rode mais de uma vez se quiser comparar cenários (ex.: `--taxa-falha 0` vs `--taxa-falha 0.3`) — isso vira o experimento principal da seção de avaliação do artigo.
+
+**Evidência a salvar:** cole o resumo impresso no terminal em `evidencias/cli-output/E7_load_test_resumo.txt`. Depois de rodar o teste de carga, abra o CloudWatch Dashboard (link nos Outputs da stack ou Console → CloudWatch → Dashboards) e salve um print em `evidencias/screenshots/E8_dashboard.png` — os widgets só ficam interessantes depois que houver tráfego de verdade.
 
 ## 6. Gerar os gráficos para o artigo
 
@@ -150,6 +164,8 @@ python3 scripts/analyze_results.py
 ```
 
 **O que conferir:** o script lista, ao final, se sobrou alguma função Lambda, fila, tabela ou log group com o prefixo da stack. Se sobrar algo, remova manualmente pelo Console AWS antes de encerrar a sessão, para não gerar cobrança inesperada.
+
+**Evidência a salvar:** cole a saída completa do script em `evidencias/cli-output/E9_limpeza.txt` — é a prova de que os recursos foram desligados ao final do trabalho.
 
 ## 8. Troubleshooting (erros mais prováveis)
 

@@ -30,6 +30,11 @@ Detalhes completos em `docs/DECISIONS.md` e no artigo (`paper/main.tex`, seção
 ├── docs/
 │   ├── DECISIONS.md            # log de decisões do projeto (fonte para o artigo)
 │   └── ROTEIRO_EXECUCAO.md     # passo a passo de deploy/teste/limpeza na AWS
+├── evidencias/
+│   ├── README.md                # checklist de evidências mínimas, mapeado ao roteiro
+│   ├── screenshots/              # capturas de tela do Console AWS
+│   ├── cli-output/                # saídas de comandos salvas em .txt
+│   └── logs/                      # exportações de CloudWatch Logs
 ├── infra/
 │   └── template.yaml           # CloudFormation: toda a infraestrutura da stack
 ├── src/

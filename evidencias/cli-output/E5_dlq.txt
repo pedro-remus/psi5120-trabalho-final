@@ -42,10 +42,9 @@ sem dados) -> ALARM (apos a mensagem cair na DLQ, threshold ApproximateNumberOfM
 >= 1 cruzado). A acao configurada (publicar no topico SNS psi5120-tf-serverless-alarmes) foi
 executada com sucesso (confirmado no historico do alarme via describe-alarm-history).
 
-NOTA: a confirmacao de que o e-mail de fato chegou na caixa de entrada do usuario
-(pedro.prda@usp.br) e algo que so pode ser verificado manualmente pelo navegador/cliente de
-e-mail - o CLI confirma que a AWS executou a acao de publicacao no SNS com sucesso, o que e
-suficiente para validar o mecanismo, mas a captura de tela do e-mail recebido fica pendente
-para o usuario anexar caso queira uma evidencia visual adicional.
+CONFIRMADO: o e-mail de alarme chegou de fato na caixa de entrada (pedro.prda@usp.br),
+recebido em 27/09/2026 as 18:20 (horario local, = 21:20:08 UTC) - exatamente o mesmo
+timestamp e conteudo (State Change OK -> ALARM, mesmo threshold cruzado) observados
+via CLI acima. PDF salvo em evidencias/screenshots/E5_alarme_email.pdf.
 
 Conclusao: mecanismo de retry -> DLQ -> alarme -> SNS funcionando ponta a ponta.

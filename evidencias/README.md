@@ -21,7 +21,7 @@ Os CSVs brutos do teste de carga ficam em `results/raw/` e os gráficos gerados 
 | E2b | Snapshot completo dos 19 recursos criados (CloudFormation, Lambda, SQS, DynamoDB, API Gateway, CloudWatch, SNS), consultado via CLI logo após o deploy | Seção 3 | `cli-output/E2b_infraestrutura_criada.txt` |
 | E3 | E-mail de "Subscription Confirmation" do SNS, confirmado | Seção 3 | `screenshots/E3_confirmacao_sns.png` |
 | E4 | Resposta HTTP 202 do evento normal + item correspondente no `dynamodb scan` | Seção 4.1 | `cli-output/E4_evento_normal.txt` |
-| E5 | `ApproximateNumberOfMessages` da DLQ = 1 após falha controlada + print do e-mail de alarme recebido | Seção 4.2 | `cli-output/E5_dlq.txt`, `screenshots/E5_alarme_email.png` |
+| E5 | `ApproximateNumberOfMessages` da DLQ = 1 após falha controlada + e-mail de alarme recebido | Seção 4.2 | `cli-output/E5_dlq.txt`, `screenshots/E5_alarme_email.pdf` |
 | E6 | Trecho do CloudWatch Logs mostrando `"fase": "duplicata_idempotente"` no teste de idempotência | Seção 4.3 | `logs/E6_idempotencia.txt` |
 | E7 | Resumo impresso pelo `load_test.py` (taxa de sucesso, p50/p95) | Seção 5 | `cli-output/E7_load_test_resumo.txt` |
 | E8 | Widgets do CloudWatch Dashboard (gerados via `get-metric-widget-image`, não print manual) | (após seção 5, com dados já fluindo) | `screenshots/E8_dashboard_*.png` + `screenshots/E8_dashboard.md` |

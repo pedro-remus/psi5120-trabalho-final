@@ -1,0 +1,38 @@
+=== Passo 5 - Teste de carga ===
+
+--- Rodada 1: --total 100 --concorrencia 10 --taxa-falha 0.1 ---
+Arquivo: results/raw/load_test_20260927T212101Z.csv
+Disparando 100 requisicoes (concorrencia=10, taxa_falha=0.1) contra
+https://rey682jail.execute-api.us-east-1.amazonaws.com/events ...
+
+Total: 100 | Sucesso (HTTP 202): 100 (100.0%)
+Latencia p50: 493.8 ms | p95: 1618.5 ms
+
+--- Rodada 2 (baseline): --total 60 --concorrencia 10 --taxa-falha 0 ---
+Arquivo: results/raw/load_test_20260927T212124Z.csv
+Disparando 60 requisicoes (concorrencia=10, taxa_falha=0.0) contra
+https://rey682jail.execute-api.us-east-1.amazonaws.com/events ...
+
+Total: 60 | Sucesso (HTTP 202): 58 (96.7%)
+Latencia p50: 492.4 ms | p95: 589.7 ms
+
+--- Investigacao: 2 respostas 503 na rodada 2 (indices 5 e 17) ---
+Ambas com forcar_falha=False (nao relacionadas ao mecanismo de falha controlada).
+Verificado via CloudWatch:
+- aws cloudwatch get-metric-statistics --metric-name Errors    (Lambda producer) -> Sum = 0
+- aws cloudwatch get-metric-statistics --metric-name Throttles (Lambda producer) -> Sum = 0
+- Logs do producer no periodo: nenhuma linha de erro.
+
+Conclusao: os dois 503 nao se originaram na funcao Lambda "producer" (zero erros/throttles
+registrados nela) - a falha ocorreu na camada do API Gateway (HTTP API), provavelmente
+uma instabilidade transitoria de uma API recem-criada sob rajada de conexoes concorrentes
+vindas de um unico cliente. Taxa de erro observada: 2/160 requisicoes totais (1.25%) nas
+duas rodadas combinadas. Achado real registrado honestamente para a secao de
+Discussion/Limitations do artigo (nao e um bug identificado na aplicacao).
+
+Nota sobre "taxa de sucesso por tipo de evento" (Secao 4.3 da avaliacao/analyze_results.py):
+como a validacao de forcar_falha acontece no consumer (downstream do SQS), nao no producer,
+a resposta HTTP da API e praticamente identica para eventos normais e eventos com
+forcar_falha=true (ambos aceitos com 202) - a diferenca de comportamento so aparece
+downstream, na DLQ. Por isso a rodada 1 (com 10% de forcar_falha) foi escolhida como
+dataset principal para os graficos de latencia do artigo.

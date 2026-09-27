@@ -62,7 +62,7 @@ We extend this laboratory along exactly these axes and treat the result as a sma
 \item An experimental evaluation under synthetic concurrent load, measuring latency distribution, success rate, and dead-letter-queue behavior, together with a qualitative cost comparison against a container-orchestration alternative.
 \end{enumerate}
 
-The remainder of this paper is organized as follows. Section~II reviews related work on cloud service models and infrastructure management. Section~III provides background on the specific AWS primitives used. Section~IV describes the extended system design. Section~V discusses implementation details. Section~VI presents the experimental evaluation. Section~VII discusses limitations and trade-offs. Section~VIII concludes.
+The remainder of this paper is organized as follows. Section~II reviews related work on cloud service models and infrastructure management. Section~III provides background on the specific AWS primitives used. Section~IV describes the extended system design. Section~V discusses implementation details. Section~VI presents the experimental evaluation. Section~VII discusses limitations and trade-offs, including two issues found and corrected during development. Section~VIII describes the reproducibility artifacts accompanying this paper. Section~IX concludes.
 
 \section{Related Work}
 
@@ -85,6 +85,12 @@ Because SQS delivery is at-least-once rather than exactly-once, any handler with
 
 \subsection{Managed observability primitives}
 Amazon CloudWatch collects metrics (built-in, such as queue depth, and custom, published by application code) and supports alarms that transition state based on a metric threshold. Amazon SNS is a managed publish-subscribe service that can deliver an alarm state transition to a human operator (for example, by email) or to another system.
+
+\subsection{API Gateway HTTP APIs}
+Amazon API Gateway offers two API types; this work uses the newer, lighter-weight \emph{HTTP API} rather than the older \emph{REST API}, trading some advanced features (request validation schemas, usage plans) for lower per-request cost and lower added latency. An HTTP API can integrate directly with a Lambda function using the \emph{Lambda proxy integration}, which forwards the raw HTTP request to the function and expects a structured response (status code, headers, body) in return; payload format version~2.0, used here, is the most recent and most compact of the two supported event shapes. The gateway itself is stateless per request --- it does not queue, retry, or buffer anything on its own --- which is precisely why the design in Section~IV places a durable SQS queue behind it rather than relying on the gateway for any of the reliability properties evaluated in Section~VI.
+
+\subsection{DynamoDB conditional writes}
+Amazon DynamoDB is a managed key-value/document store billed, in the on-demand mode used here, per read/write request rather than per provisioned throughput. A \texttt{PutItem} call may include a \texttt{ConditionExpression}, evaluated server-side against the item's current state (or absence) immediately before the write is applied; if the condition is not met, DynamoDB rejects the entire write atomically with a \texttt{ConditionalCheckFailedException} and leaves any existing item untouched. Because the check and the write happen as a single atomic server-side operation, this primitive is safe under concurrent writers in a way that a client-side ``read, check, then write'' sequence would not be, which is why it is the mechanism of choice for the idempotency guarantee described in Section~IV.
 
 \section{System Design}
 
@@ -214,6 +220,29 @@ We manually issued two identical requests sharing the same \texttt{event\_id}, s
 \subsection{Cost}
 Because both Lambda functions run in well under a second per invocation and all other services used (API Gateway HTTP API, SQS, DynamoDB on-demand, CloudWatch, SNS) bill per request/GB with a free tier, the workload evaluated here remained within AWS's free-tier allowances. No resource in the stack carries a fixed hourly cost: there is no EC2 instance, no NAT gateway, no load balancer, and no provisioned database capacity, so the marginal cost of the entire experimental campaign described in this paper --- one full deploy/teardown cycle, three manual test scenarios, and 160 load-test requests --- was, by design, a small fraction of the author's self-imposed \$10 budget on a trial AWS account, dominated by the two always-charged fixed-rate items in the stack: the CloudWatch dashboard (\$3.00/month, prorated to the few hours it was kept running) and the CloudWatch alarm (\$0.10/month, similarly prorated). This stands in direct contrast to the EKS-based laboratory earlier in the course, whose pricing exercise (Aula~06 materials) recorded non-zero hourly rates for EC2 worker nodes, the EKS control plane, and an Application Load Balancer regardless of whether the cluster is actively serving traffic --- a structural cost difference, not merely a difference in the specific numbers observed, since a serverless pipeline's idle cost is zero by construction while a cluster's idle cost is not.
 
+Table~\ref{tab:cost} lists the published on-demand rate for each billable dimension of the stack (\texttt{us-east-1}, list prices at the time of writing~\cite{awspricing}) alongside the quantity actually consumed by the experimental campaign in this paper, to make the zero-idle-cost claim concrete rather than qualitative.
+
+\begin{table}[htbp]
+\caption{Billable dimensions of the stack and consumption during this study}
+\label{tab:cost}
+\centering
+\begin{tabular}{p{2.1cm}p{2.9cm}p{1.6cm}}
+\toprule
+\textbf{Resource} & \textbf{Rate (on-demand)} & \textbf{Fixed hourly cost?} \\
+\midrule
+Lambda (both fns.) & \$0.20 / 1M requests + \$0.0000166667 / GB-s & No \\
+API Gateway (HTTP) & \$1.00 / 1M requests & No \\
+SQS (main + DLQ) & \$0.40 / 1M requests & No \\
+DynamoDB (on-demand) & \$1.25 / 1M writes, \$0.25 / 1M reads & No \\
+SNS (email) & first 1{,}000 notif./month free & No \\
+CloudWatch alarm & \$0.10 / alarm / month & Yes (prorated) \\
+CloudWatch dashboard & \$3.00 / dashboard / month & Yes (prorated) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Only the last two rows carry any fixed charge, and both are prorated to hours actually provisioned rather than billed as a full month; every other row scales strictly with the 168 requests issued in total across the manual tests, the two load-test rounds, and the follow-up verification calls in this study (Sections~VI--VII), which is why the entire experimental campaign remained a small fraction of the author's self-imposed \$10 budget on a trial account.
+
 \section{Discussion}
 
 \subsection{Idempotency of effects versus idempotency of execution}
@@ -232,6 +261,10 @@ During evaluation, the custom-metric dashboard widget (Section~IV) initially ren
 \label{sec:threats}
 The load test was executed from a single client process against a single AWS region, which measures end-to-end latency as experienced from one network vantage point rather than the server-side processing latency alone; it therefore reflects a combination of network conditions and pipeline behavior. Separately, the no-induced-failure baseline (Round~2, Section~VI-A) recorded a 96.7\% HTTP acceptance rate (58/60): two requests received an HTTP~503 response with no \texttt{forcar\_falha} flag set. We investigated this via CloudWatch (\texttt{Errors} and \texttt{Throttles} metrics for the producer function, both zero in the relevant time window) and via the producer's own structured logs (no error entries), and found no evidence that the failure originated in the application code; we attribute it to transient behavior at the API Gateway layer under a newly created HTTP API receiving its first burst of concurrent connections, though we did not instrument API Gateway's own access logs (not enabled in the current template) to confirm this more precisely. Combined across both rounds, 158 of 160 requests (98.75\%) succeeded at the API layer. We report this finding rather than omitting it, since a 1.25\% baseline failure rate unrelated to the mechanism under study is itself a relevant characteristic of the platform for anyone reasoning about the reliability of a system built on top of it.
 
+\section{Reproducibility and Artifact Availability}
+
+The complete infrastructure-as-code template, both Lambda function implementations, the load-testing and figure-generation scripts, and every raw artifact referenced in Section~VI (CSV files, generated figures, CloudWatch widget captures, and the SNS alarm email itself) are published in a public GitHub repository.\footnote{\url{https://github.com/pedro-remus/psi5120-trabalho-final}} Beyond the code, the repository maintains two artifacts intended to make the engineering process itself auditable rather than only its final state: a chronological decision log (\texttt{docs/DECISIONS.md}) recording, for every non-trivial choice made during development, the context that motivated it, the alternatives considered, and the reason for the choice actually made --- including the two issues discussed in Section~VII (the metric-dimension bug in VII-D and the API Gateway error-rate finding in VII-E), each logged at the time it was found and again once fixed and re-verified; and a step-by-step deployment runbook (\texttt{docs/ROTEIRO\_EXECUCAO.md}) written for an operator with no prior AWS experience, covering credential setup, deployment, the three manual test scenarios, load testing, figure generation, and teardown, with an explicit evidence-capture checklist (\texttt{evidencias/README.md}) cross-referencing each runbook step to the artifact it should produce. We adopted this practice primarily for pedagogical accountability within the course, but it also has the effect of making every empirical claim in Section~VI traceable to a specific command, timestamp, and raw output rather than to a figure alone.
+
 \section{Conclusion and Future Work}
 
 We extended a didactic AWS Lambda--SQS laboratory exercise into a more complete serverless event-processing pipeline, adding an HTTP ingestion layer, idempotent persistence, and an observability layer, while preserving the retry-to-dead-letter-queue mechanism taught in the original exercise. The resulting system was evaluated experimentally under synthetic concurrent load against a live deployment: 158 of 160 requests (98.75\%) succeeded end to end with a median latency of 492~ms, all nine controlled-failure events were correctly captured by the dead-letter queue and surfaced through a CloudWatch alarm and SNS email confirmed to have reached the operator's inbox, and duplicate deliveries of the same event were persisted exactly once. Future work could extend the idempotency mechanism to a reserve-then-process pattern for handlers with non-idempotent side effects, replace the manually synchronized inline Lambda code with a packaging pipeline, and add AWS X-Ray tracing to attribute latency across the producer, queue, and consumer stages individually rather than only end-to-end.
@@ -249,6 +282,9 @@ B. Sotomayor, R. S. Montero, I. M. Llorente, and I. Foster, ``Virtual infrastruc
 
 \bibitem{opennebula2011}
 D. Milojičić, I. M. Llorente, and R. S. Montero, ``OpenNebula: A cloud management tool,'' \emph{IEEE Internet Computing}, vol. 15, no. 2, pp. 11--14, Mar./Apr. 2011.
+
+\bibitem{awspricing}
+Amazon Web Services, ``AWS Pricing,'' \url{https://aws.amazon.com/pricing/}, accessed Sept. 2026.
 
 \end{thebibliography}
 

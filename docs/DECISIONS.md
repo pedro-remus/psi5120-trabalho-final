@@ -78,6 +78,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** nenhuma — atende diretamente ao pedido.
 - **Impacto no artigo:** nenhum diretamente; é uma ferramenta operacional, não um artefato de pesquisa a ser citado.
 
+## [2026-09-27 08h35] Detalhamento da instalação do AWS CLI e nome do profile
+
+- **Contexto:** ao iniciar a execução (dia da entrega), constatou-se que o AWS CLI não estava instalado na máquina do usuário, e o roteiro original assumia que a instalação "já tinha sido feita no Tutorial 2 da Aula 07" sem detalhar o passo Windows. O usuário também informou já ter um usuário IAM próprio chamado `pedro-psi5120` (em vez de criar um novo `psi5120-trabalho-final` como o roteiro sugeria) e perguntou se o AWS CLI deveria ser configurado com o usuário root ou com o IAM user.
+- **Decisão:** (1) `docs/ROTEIRO_EXECUCAO.md` (seção 2) e o Artifact do roteiro foram expandidos com passo a passo específico para Windows (instalador MSI oficial ou `winget`), reforçando explicitamente que o AWS CLI deve ser configurado **sempre com o usuário IAM, nunca com a conta root** (root não deveria nem ter access keys geradas). (2) Todos os exemplos de comando que usavam `--profile psi5120` genérico foram trocados para `--profile pedro-psi5120`, refletindo o usuário IAM real do operador, para os comandos serem copiáveis sem precisar de substituição mental.
+- **Alternativas consideradas:** manter um usuário/profile genérico nos exemplos — descartado porque o usuário já tinha um IAM user real configurado, e usar o nome real reduz erro de cópia/cola.
+- **Impacto no artigo:** nenhum diretamente (detalhe operacional), mas reforça, na seção *Implementation* ou numa nota de rodapé, a prática de least-privilege/least-exposure já mencionada (nunca usar credenciais root em automação).
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

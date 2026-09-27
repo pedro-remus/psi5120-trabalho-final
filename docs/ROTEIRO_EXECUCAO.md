@@ -3,9 +3,10 @@
 Este roteiro assume que você não tem nenhuma experiência prévia com o Console ou o CLI da AWS. Siga os passos **na ordem**. Cada comando vem acompanhado de uma explicação do que ele faz e do que você deve conferir depois de rodá-lo.
 
 Convenções usadas abaixo:
-- Comandos de terminal aparecem em blocos ```bash```. Rode-os no WSL/Ubuntu (mesmo ambiente usado no Tutorial 2 da Aula 07) ou em qualquer terminal com `bash` e o AWS CLI instalado.
+- Comandos de terminal aparecem em blocos ```bash```. Funcionam tanto no WSL/Ubuntu (mesmo ambiente usado no Tutorial 2 da Aula 07) quanto no PowerShell do Windows, desde que o AWS CLI esteja instalado (seção 2) — os comandos `aws ...` são idênticos nos dois; só os scripts `.sh` (`deploy.sh`, `cleanup.sh`) precisam de `bash` (WSL, Git Bash, ou similar) para rodar.
 - Troque `SEU_EMAIL@exemplo.com` pelo seu e-mail de verdade.
 - Troque `psi5120-tf-serverless` pelo nome de stack que preferir, se quiser (mas mantenha o mesmo nome em todos os comandos depois).
+- Os exemplos abaixo usam o profile `pedro-psi5120` — troque pelo nome que você usar se for diferente.
 
 ---
 
@@ -17,31 +18,76 @@ Convenções usadas abaixo:
 
 ## 2. Instalar e configurar o AWS CLI
 
-1. Verifique se já está instalado:
-   ```bash
-   aws --version
-   ```
-   Se não aparecer nada, siga a documentação oficial de instalação do AWS CLI v2 para o seu sistema (o mesmo procedimento já usado no Tutorial 2 da Aula 07).
+O "AWS CLI" é apenas um programa de linha de comando que você instala **uma vez** nesta máquina. Ele é separado da sua conta AWS — instalar o programa não cria nem configura nada na nuvem por si só; ele só passa a existir como comando no seu terminal. Depois de instalado, você aponta esse programa para *qual* conta/usuário usar através de um **profile** (seção 2.4).
 
-2. Configure um perfil nomeado (evita conflito com outros perfis que você já tenha):
-   ```bash
-   aws configure --profile psi5120
-   ```
-   Informe, quando pedido:
-   - AWS Access Key ID: (a que você anotou no passo 1.3)
-   - AWS Secret Access Key: (idem)
-   - Default region name: `us-east-1` (ou a região que você usar; mantenha a mesma em todos os comandos)
-   - Default output format: `json`
+### 2.1 Verificar se já está instalado
 
-3. Confirme que funcionou:
-   ```bash
-   aws sts get-caller-identity --profile psi5120
-   ```
-   **O que conferir:** a saída deve mostrar `UserId`, `Account` e `Arn` do usuário IAM que você criou. Se der erro de credenciais, revise o passo 2.2.
+```bash
+aws --version
+```
 
-   **Evidência a salvar:** cole essa saída em `evidencias/cli-output/E1_identidade_aws.txt` (ver `evidencias/README.md`).
+Se aparecer algo como `aws-cli/2.x.x Python/3.x.x Windows/...`, já está instalado — pule para a seção 2.4. Se aparecer "comando não encontrado" (`aws: command not found` no bash, ou "'aws' não é reconhecido..." no PowerShell), siga a seção 2.2.
 
-4. **Nunca** coloque essas credenciais em nenhum arquivo do repositório. Elas ficam apenas em `~/.aws/credentials`, gerenciadas pelo próprio comando `aws configure`. O `.gitignore` deste repositório já bloqueia arquivos comuns de credenciais, mas a responsabilidade final é sua: nunca faça `git add` de um arquivo `.env` ou similar com chaves.
+### 2.2 Instalar no Windows
+
+Duas opções — escolha uma:
+
+**Opção A — instalador oficial (mais direta):**
+1. Baixe o instalador em `https://awscli.amazonaws.com/AWSCLIV2.msi` (abra esse link no navegador; é o link oficial e estável da AWS para a versão mais recente do CLI v2 no Windows).
+2. Execute o arquivo `.msi` baixado e siga o instalador (Next → Next → Install), como qualquer programa Windows.
+3. **Feche e abra um terminal novo** (o `PATH` só é atualizado em janelas de terminal abertas depois da instalação).
+
+**Opção B — via `winget` (se você já usa o gerenciador de pacotes do Windows):**
+```powershell
+winget install Amazon.AWSCLI
+```
+Depois, também feche e abra um terminal novo.
+
+### 2.3 Confirmar a instalação
+
+Em um terminal **novo**:
+```bash
+aws --version
+```
+**O que conferir:** deve aparecer a versão instalada (ex.: `aws-cli/2.x.x`). Se continuar dizendo que o comando não existe, reinicie o terminal (ou o VS Code, se for o caso) — às vezes é só o `PATH` do processo antigo que ficou desatualizado.
+
+### 2.4 Gerar as credenciais do usuário IAM (se ainda não tiver)
+
+Isso é feito **no Console AWS pelo navegador**, não no terminal:
+1. Entre no Console AWS com o usuário IAM (não o root — ver caixa abaixo) ou, se for a primeira vez, peça para alguém com acesso de administrador criar/liberar isso para o seu usuário.
+2. Vá em **IAM → Users → (seu usuário, ex. `pedro-psi5120`) → aba "Security credentials" → "Create access key"**.
+3. Escolha o caso de uso **"Command Line Interface (CLI)"**, confirme o aviso, e clique em criar.
+4. Anote a **Access Key ID** e a **Secret Access Key** — a secret só é mostrada **uma única vez** nessa tela. Se perder, você precisa gerar uma nova (não tem como recuperar a antiga).
+
+> **Root user ou IAM user? Sempre IAM user.** O AWS CLI (e qualquer automação, script ou trabalho do dia a dia) deve ser configurado com as credenciais de um **usuário IAM** (como `pedro-psi5120`), nunca com as credenciais da conta **root** (o e-mail/senha usados para criar a conta AWS). A conta root tem poder irrestrito sobre a conta inteira (incluindo fechar a conta, mudar cobrança, etc.) e a AWS recomenda explicitamente nunca gerar access keys para ela — o root deveria, idealmente, nem ter access keys criadas, ficando reservado só para as poucas tarefas que exigem login root pelo Console (como algumas configurações de billing). Como você já tem o usuário `pedro-psi5120`, é ele que deve ser usado aqui.
+
+### 2.5 Configurar o profile
+
+Um **profile** é só um apelido local para um conjunto de credenciais, guardado em `~/.aws/credentials` e `~/.aws/config` (no Windows, dentro de `C:\Users\<seu-usuário>\.aws\`). Ele existe para você poder ter várias contas/usuários AWS configurados na mesma máquina sem um sobrescrever o outro, e para escolher qual usar em cada comando com a flag `--profile`.
+
+```bash
+aws configure --profile pedro-psi5120
+```
+Informe, quando pedido:
+- **AWS Access Key ID:** a que você anotou no passo 2.4
+- **AWS Secret Access Key:** idem
+- **Default region name:** `us-east-1` (ou a região que preferir; use a mesma em todos os comandos daqui pra frente)
+- **Default output format:** `json`
+
+Isso cria/atualiza os arquivos `~/.aws/credentials` (as chaves) e `~/.aws/config` (região/formato) — você não precisa editá-los manualmente.
+
+### 2.6 Confirmar que funcionou
+
+```bash
+aws sts get-caller-identity --profile pedro-psi5120
+```
+**O que conferir:** a saída deve mostrar `UserId`, `Account` e um `Arn` terminando em `user/pedro-psi5120`. Se der erro de credenciais, revise o passo 2.5 (chave digitada errada é a causa mais comum).
+
+**Evidência a salvar:** cole essa saída em `evidencias/cli-output/E1_identidade_aws.txt` (ver `evidencias/README.md`).
+
+### 2.7 Segurança das credenciais
+
+**Nunca** coloque Access Key/Secret Key em nenhum arquivo do repositório. Elas ficam apenas em `~/.aws/credentials`, gerenciadas pelo próprio comando `aws configure` — nunca as digite em um arquivo `.py`, `.yaml`, `.env` ou semelhante. O `.gitignore` deste repositório já bloqueia os nomes de arquivo mais comuns de credenciais, mas a responsabilidade final é sua: revise sempre o que está sendo commitado (`git status`) antes de um `git add`/`git push`.
 
 ## 3. Deploy da stack CloudFormation
 
@@ -49,7 +95,7 @@ O script `scripts/deploy.sh` faz tudo isso por você. Rode a partir da raiz do r
 
 ```bash
 chmod +x scripts/deploy.sh scripts/cleanup.sh
-./scripts/deploy.sh SEU_EMAIL@exemplo.com psi5120-tf-serverless us-east-1 psi5120
+./scripts/deploy.sh SEU_EMAIL@exemplo.com psi5120-tf-serverless us-east-1 pedro-psi5120
 ```
 
 **O que este comando faz:** cria (ou atualiza) todos os recursos definidos em `infra/template.yaml` — DynamoDB, filas SQS, as duas funções Lambda, API Gateway, tópico SNS, alarme e dashboard do CloudWatch.
@@ -80,7 +126,7 @@ curl -i -X POST "https://SEU-ID.execute-api.us-east-1.amazonaws.com/events" \
 **O que conferir:** resposta HTTP `202` com um `event_id` no corpo. Depois de alguns segundos, confira que o item foi gravado no DynamoDB:
 
 ```bash
-aws dynamodb scan --table-name psi5120-tf-serverless-events --region us-east-1 --profile psi5120
+aws dynamodb scan --table-name psi5120-tf-serverless-events --region us-east-1 --profile pedro-psi5120
 ```
 
 Deve aparecer um item com o `event_id` retornado pela chamada anterior e `"status": "processado"`.
@@ -99,9 +145,9 @@ curl -i -X POST "https://SEU-ID.execute-api.us-east-1.amazonaws.com/events" \
 
 ```bash
 aws sqs get-queue-attributes \
-  --queue-url "$(aws cloudformation describe-stacks --stack-name psi5120-tf-serverless --region us-east-1 --profile psi5120 --query "Stacks[0].Outputs[?OutputKey=='DLQUrl'].OutputValue" --output text)" \
+  --queue-url "$(aws cloudformation describe-stacks --stack-name psi5120-tf-serverless --region us-east-1 --profile pedro-psi5120 --query "Stacks[0].Outputs[?OutputKey=='DLQUrl'].OutputValue" --output text)" \
   --attribute-names ApproximateNumberOfMessages \
-  --region us-east-1 --profile psi5120
+  --region us-east-1 --profile pedro-psi5120
 ```
 
 **O que conferir:** `ApproximateNumberOfMessages` deve ser `1` (ou mais, se você repetiu o teste). Você também deve receber o e-mail de alarme do CloudWatch (se confirmou a assinatura no passo 3).
@@ -127,7 +173,7 @@ curl -i -X POST "https://SEU-ID.execute-api.us-east-1.amazonaws.com/events" \
 
 Para ver os logs pelo CLI:
 ```bash
-aws logs tail /aws/lambda/psi5120-tf-serverless-consumer --region us-east-1 --profile psi5120 --since 10m
+aws logs tail /aws/lambda/psi5120-tf-serverless-consumer --region us-east-1 --profile pedro-psi5120 --since 10m
 ```
 
 **Evidência a salvar:** cole o trecho relevante do log (mostrando `"fase": "gravado"` na primeira execução e `"fase": "duplicata_idempotente"` na segunda) em `evidencias/logs/E6_idempotencia.txt`.
@@ -160,7 +206,7 @@ python3 scripts/analyze_results.py
 ## 7. Limpeza (fazer sempre ao terminar de coletar dados)
 
 ```bash
-./scripts/cleanup.sh psi5120-tf-serverless us-east-1 psi5120
+./scripts/cleanup.sh psi5120-tf-serverless us-east-1 pedro-psi5120
 ```
 
 **O que conferir:** o script lista, ao final, se sobrou alguma função Lambda, fila, tabela ou log group com o prefixo da stack. Se sobrar algo, remova manualmente pelo Console AWS antes de encerrar a sessão, para não gerar cobrança inesperada.

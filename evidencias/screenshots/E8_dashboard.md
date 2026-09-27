@@ -27,3 +27,19 @@ e na cópia embutida em `infra/template.yaml`, seguido de um redeploy da stack (
 função `consumer` foi atualizada). Confirmado com `aws cloudwatch get-metric-statistics`
 filtrando só por `Resultado` antes de regerar a imagem acima. Ver `docs/DECISIONS.md`
 para o registro completo desta decisão.
+
+## Sobre a janela de tempo das imagens
+
+`get-metric-widget-image` não recebe uma janela padrão útil quando `start`/`end` não são
+informados (usa um intervalo amplo, deixando os eventos do teste concentrados numa ponta
+do gráfico). As imagens finais usam `start`/`end` explícitos, enquadrando exatamente o
+período de cada rodada de teste:
+
+- `E8_dashboard_lambdas.png` e `E8_dashboard_filas.png`: 2026-09-27T21:14Z – 21:29Z
+  (Passos 4 e 5 originais).
+- `E8_dashboard_metrica_custom.png`: 2026-09-27T22:23Z – 22:26Z (rodada adicional feita
+  após a correção do bug de dimensão, para popular o widget com os 3 tipos de resultado).
+  Note que `gravado` e `duplicata_idempotente` caem no mesmo bucket de 60s e por isso
+  aparecem sobrepostos visualmente — confirmado via `get-metric-statistics` que os dois
+  pontos existem de fato (1 cada), a sobreposição é só uma coincidência de timing entre
+  chamadas de teste manuais disparadas em sequência rápida, não um erro nos dados.

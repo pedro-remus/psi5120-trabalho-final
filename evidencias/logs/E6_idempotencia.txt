@@ -1,0 +1,35 @@
+=== 4.3 Teste de idempotencia ===
+Mesmo event_id ("teste-idempotencia-001") enviado duas vezes via POST /events,
+com 6s de intervalo entre as duas chamadas.
+
+--- Logs do consumer (CloudWatch Logs, /aws/lambda/psi5120-tf-serverless-consumer) ---
+
+Primeira execucao (21:19:39 UTC) - grava normalmente:
+{"fase": "inicio", ..., "event_id": "teste-idempotencia-001", ...}
+{"fase": "gravado", ..., "event_id": "teste-idempotencia-001", ...}
+{"fase": "fim", "resultado": {"status": "processado", "idempotente_duplicata": false, "event_id": "teste-idempotencia-001", ...}, ...}
+
+Segunda execucao (21:19:45 UTC) - detecta duplicata, nao sobrescreve:
+{"fase": "inicio", ..., "event_id": "teste-idempotencia-001", ...}
+{"fase": "duplicata_idempotente", ..., "event_id": "teste-idempotencia-001", ...}
+{"fase": "fim", "resultado": {"status": "processado", "idempotente_duplicata": true, "event_id": "teste-idempotencia-001", ...}, ...}
+
+--- Verificacao no DynamoDB (aws dynamodb get-item) ---
+{
+    "Item": {
+        "ambiente": { "S": "trabalho-final" },
+        "valor": { "S": "1" },
+        "tipo_evento": { "S": "teste_idempotente" },
+        "request_id": { "S": "66463523-48a8-569a-823e-5610c2313759" },
+        "status": { "S": "processado" },
+        "event_id": { "S": "teste-idempotencia-001" },
+        "modo": { "S": "sqs" },
+        "timestamp_processado": { "S": "2026-09-27T21:19:39.974301+00:00" }
+    }
+}
+
+Conclusao: existe exatamente 1 item no DynamoDB para esse event_id, e o request_id
+gravado ("66463523...") corresponde a PRIMEIRA execucao, nao a segunda ("3425e2aa...").
+Isso confirma que a escrita condicional (ConditionExpression=attribute_not_exists(event_id))
+funcionou: a segunda entrega (reenvio manual simulando reentrega do SQS) foi detectada como
+duplicata e NAO sobrescreveu o item ja existente. Mecanismo de idempotencia validado.

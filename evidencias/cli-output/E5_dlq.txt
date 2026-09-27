@@ -1,0 +1,51 @@
+=== 4.2 Falha controlada -> DLQ ===
+
+Requisicao enviada: 2026-09-27T21:16:16Z
+POST /events  Body: {"tipo_evento": "teste_falha", "forcar_falha": true}
+event_id: 447835ad-1136-4c3c-b1ca-7923596ae5a5
+
+--- Logs do consumer (2 tentativas de processamento, ambas com falha controlada) ---
+2026-09-27T21:16:16 - tentativa 1 (RequestId 1728258d...) - RuntimeError: Falha controlada para demonstrar retry e DLQ
+2026-09-27T21:16:46 - tentativa 2 (RequestId 66838d31...) - RuntimeError: Falha controlada para demonstrar retry e DLQ
+(30s de intervalo entre tentativas = VisibilityTimeout da fila principal)
+
+A 3a tentativa nao gera invocacao da Lambda: como maxReceiveCount=2 foi excedido, o SQS
+move a mensagem diretamente para a DLQ no proximo poll, sem entregar novamente ao consumer.
+
+--- DLQ: aws sqs get-queue-attributes (21:19:13Z, ~3min apos o envio) ---
+{
+    "Attributes": {
+        "ApproximateNumberOfMessages": "1",
+        "ApproximateNumberOfMessagesNotVisible": "0"
+    }
+}
+
+--- Fila principal: aws sqs get-queue-attributes (mesma hora) ---
+{
+    "Attributes": {
+        "ApproximateNumberOfMessages": "0",
+        "ApproximateNumberOfMessagesNotVisible": "0"
+    }
+}
+
+=== Alarme CloudWatch (psi5120-tf-serverless-dlq-com-mensagens) ===
+
+Estado em 21:20:24Z:
+{
+    "StateValue": "ALARM",
+    "StateReason": "Threshold Crossed: 1 datapoint [1.0 (27/09/26 21:18:00)] was greater than or equal to the threshold (1.0).",
+    "StateUpdatedTimestamp": "2026-09-27T18:20:08.537000-03:00"
+}
+
+Transicao confirmada via describe-alarm-history: INSUFFICIENT_DATA -> OK (antes do teste,
+sem dados) -> ALARM (apos a mensagem cair na DLQ, threshold ApproximateNumberOfMessagesVisible
+>= 1 cruzado). A acao configurada (publicar no topico SNS psi5120-tf-serverless-alarmes) foi
+executada com sucesso (confirmado no historico do alarme via describe-alarm-history).
+
+NOTA: a confirmacao de que o e-mail de fato chegou na caixa de entrada do usuario
+(pedro.prda@usp.br) e algo que so pode ser verificado manualmente pelo navegador/cliente de
+e-mail - o CLI confirma que a AWS executou a acao de publicacao no SNS com sucesso, o que e
+suficiente para validar o mecanismo, mas a captura de tela do e-mail recebido fica pendente
+para o usuario anexar caso queira uma evidencia visual adicional.
+
+Conclusao: mecanismo de retry -> DLQ -> alarme -> SNS funcionando ponta a ponta.

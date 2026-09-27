@@ -89,7 +89,7 @@ def _normalize_event(event):
     }
 
 
-def _emitir_metrica(tipo_evento, resultado):
+def _emitir_metrica(resultado):
     try:
         cloudwatch.put_metric_data(
             Namespace=METRIC_NAMESPACE,
@@ -99,7 +99,6 @@ def _emitir_metrica(tipo_evento, resultado):
                     "Value": 1,
                     "Unit": "Count",
                     "Dimensions": [
-                        {"Name": "TipoEvento", "Value": tipo_evento},
                         {"Name": "Resultado", "Value": resultado},
                     ],
                 }
@@ -161,7 +160,7 @@ def lambda_handler(event, context):
     payload = norm["payload"]
     if FALHA_CONTROLADA and payload.get("forcar_falha") is True:
         print(json.dumps({"fase": "falha_controlada", **log_base}, ensure_ascii=False))
-        _emitir_metrica(norm["tipo_evento"], "falha_controlada")
+        _emitir_metrica("falha_controlada")
         raise RuntimeError("Falha controlada para demonstrar retry e DLQ")
 
     # Simula validacao de dominio sem acessar servico externo (identico a Aula 07).
@@ -175,7 +174,7 @@ def lambda_handler(event, context):
                 ensure_ascii=False,
             )
         )
-        _emitir_metrica(norm["tipo_evento"], "valor_invalido")
+        _emitir_metrica("valor_invalido")
         raise ValueError("Campo valor deve ser numerico")
 
     time.sleep(0.05)
@@ -198,7 +197,7 @@ def lambda_handler(event, context):
     gravou = _gravar_idempotente(item)
     fase = "gravado" if gravou else "duplicata_idempotente"
     print(json.dumps({"fase": fase, **log_base}, ensure_ascii=False))
-    _emitir_metrica(norm["tipo_evento"], fase)
+    _emitir_metrica(fase)
 
     resultado = {
         "status": "processado",

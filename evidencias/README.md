@@ -24,7 +24,7 @@ Os CSVs brutos do teste de carga ficam em `results/raw/` e os gráficos gerados 
 | E5 | `ApproximateNumberOfMessages` da DLQ = 1 após falha controlada + print do e-mail de alarme recebido | Seção 4.2 | `cli-output/E5_dlq.txt`, `screenshots/E5_alarme_email.png` |
 | E6 | Trecho do CloudWatch Logs mostrando `"fase": "duplicata_idempotente"` no teste de idempotência | Seção 4.3 | `logs/E6_idempotencia.txt` |
 | E7 | Resumo impresso pelo `load_test.py` (taxa de sucesso, p50/p95) | Seção 5 | `cli-output/E7_load_test_resumo.txt` |
-| E8 | Print do CloudWatch Dashboard com os widgets populados | (após seção 5, com dados já fluindo) | `screenshots/E8_dashboard.png` |
+| E8 | Widgets do CloudWatch Dashboard (gerados via `get-metric-widget-image`, não print manual) | (após seção 5, com dados já fluindo) | `screenshots/E8_dashboard_*.png` + `screenshots/E8_dashboard.md` |
 | E9 | Saída do `./scripts/cleanup.sh` confirmando ausência de resíduos | Seção 7 | `cli-output/E9_limpeza.txt` |
 
 Atualize esta tabela se adicionar/remover algum teste — e registre a mudança em `docs/DECISIONS.md` se ela alterar o que o artigo relata.

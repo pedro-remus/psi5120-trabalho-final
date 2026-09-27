@@ -99,6 +99,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** deixar a stack no ar até o fim do dia por flexibilidade — descartado em favor de minimizar custo, dado o teto explícito e o uso de créditos trial.
 - **Impacto no artigo:** nenhum diretamente; pode alimentar a seção de custo (*Experimental Evaluation*) com o custo real observado, se o usuário quiser conferir a fatura depois.
 
+## [2026-09-27 09h27] Bug real encontrado e corrigido: métrica customizada não aparecia no dashboard
+
+- **Contexto:** ao gerar a evidência E8 (renderização dos widgets do CloudWatch Dashboard via `aws cloudwatch get-metric-widget-image`), o widget da métrica customizada `EventosProcessados` veio vazio, apesar de `list-metrics` confirmar que a métrica estava sendo publicada. Investigação (`list-metrics`) revelou que `_emitir_metrica` em `consumer_function.py` publicava cada ponto com duas dimensões (`TipoEvento` + `Resultado`), enquanto o widget do dashboard (`infra/template.yaml`) consultava só por `Resultado`. No CloudWatch, o conjunto de dimensões faz parte da identidade da métrica, então a consulta parcial nunca casava com os dados publicados.
+- **Decisão:** `_emitir_metrica` foi simplificada para publicar apenas com a dimensão `Resultado` (removido `TipoEvento`, que nenhum widget usava). Corrigido em `src/consumer_function.py` e na cópia embutida em `infra/template.yaml`; redeploy da stack feito para atualizar a função `consumer`; correção confirmada via `aws cloudwatch get-metric-statistics` antes de regerar a imagem de evidência.
+- **Alternativas consideradas:** ajustar o widget do dashboard para consultar por `Resultado` + `TipoEvento` juntos (ou via expressão `SEARCH`) — descartado por ser mais complexo (exigiria uma série por combinação de `TipoEvento`, que varia livremente por payload) sem trazer valor adicional, já que o dashboard só precisa do agregado por `Resultado`.
+- **Impacto no artigo:** bom exemplo real para a seção *Discussion*/*Limitations* — ilustra um erro comum e sutil de observabilidade (dimensões de métrica como parte da identidade, não como filtro livre) encontrado e corrigido durante o desenvolvimento, com evidência do antes/depois em `evidencias/screenshots/E8_dashboard.md`.
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

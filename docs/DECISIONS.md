@@ -85,6 +85,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** manter um usuário/profile genérico nos exemplos — descartado porque o usuário já tinha um IAM user real configurado, e usar o nome real reduz erro de cópia/cola.
 - **Impacto no artigo:** nenhum diretamente (detalhe operacional), mas reforça, na seção *Implementation* ou numa nota de rodapé, a prática de least-privilege/least-exposure já mencionada (nunca usar credenciais root em automação).
 
+## [2026-09-27 08h50] Artifact do roteiro atualizado com o mesmo detalhamento
+
+- **Contexto:** o Passo 2 do Artifact publicado (checklist interativo) estava resumido demais (só `aws configure`/`aws sts get-caller-identity`, sem passo de instalação), e um bug foi encontrado: o campo `label` de cada bloco de comando existia nos dados mas nunca era renderizado na página.
+- **Decisão:** o Passo 2 do Artifact foi reescrito para espelhar `docs/ROTEIRO_EXECUCAO.md` (verificação, instalação no Windows via MSI/winget, aviso explícito IAM vs. root, configuração do profile, confirmação de identidade); o bug de renderização do `label` dos comandos foi corrigido (agora aparece como legenda acima de cada bloco de código); todas as referências ao profile genérico `psi5120` nos exemplos foram trocadas para `pedro-psi5120`.
+- **Alternativas consideradas:** nenhuma — correção e atualização direta.
+- **Impacto no artigo:** nenhum.
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

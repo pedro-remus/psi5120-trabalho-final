@@ -121,6 +121,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas (autor):** manter o e-mail pessoal `pedro.prda@gmail.com` no artigo — trocado para o e-mail institucional USP por ser mais apropriado a um artigo acadêmico afiliado à Universidade de São Paulo.
 - **Impacto no artigo:** artigo completo, pronto para compilação/revisão final. Validado estruturalmente (chaves balanceadas, ambientes `\begin`/`\end` batendo, todas as `\ref`/`\cite`/`\includegraphics` resolvidas e apontando para arquivos existentes) — falta apenas compilar no Overleaf para confirmar a contagem de páginas (mínimo 6, máximo 18).
 
+## [2026-09-27 20h05] Artigo expandido para atingir o mínimo de 6 páginas
+
+- **Contexto:** a primeira compilação no Overleaf ficou com "pouco menos de 6 páginas" (mínimo exigido pelo enunciado). Era preciso adicionar conteúdo real, não enchimento.
+- **Decisão:** adicionadas duas subseções em Background explicando conceitos usados na Implementação mas nunca introduzidos (API Gateway HTTP API e escrita condicional do DynamoDB); uma tabela quantitativa de custos (Table~II, com as taxas públicas da AWS e o volume real de requisições consumido); e uma nova seção "Reproducibility and Artifact Availability" (Seção VIII) descrevendo o repositório público, o log de decisões e o roteiro de execução como artefatos de auditoria do processo, não só do resultado. A numeração das seções no roadmap da Introdução foi corrigida (Conclusão passou a ser Seção IX).
+- **Alternativas consideradas:** aumentar o tamanho da fonte/margens ou parafrasear trechos existentes de forma mais prolixa — descartado por ser enchimento sem conteúdo, indo contra a prática de honestidade científica já seguida no resto do artigo.
+- **Impacto no artigo:** Seções III, VI, VIII diretamente; deve ser recompilado no Overleaf para confirmar que passou de 6 páginas.
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

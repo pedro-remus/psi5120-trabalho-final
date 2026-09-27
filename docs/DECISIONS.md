@@ -142,6 +142,15 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** forçar centralização manual do terceiro bloco com comandos de espaçamento — descartado por ser mais frágil (depende da largura exata da coluna) que simplesmente usar um bloco compartilhado, já que os 3 autores têm a mesma afiliação.
 - **Impacto no artigo:** cabeçalho de autoria (topo da primeira página).
 
+## [2026-09-27 20h40] Revisão do PDF compilado: 2 bugs reais encontrados e corrigidos
+
+- **Contexto:** o usuário compilou no Overleaf e compartilhou o PDF final (7 páginas, dentro do limite 6–18) para revisão. Leitura completa do PDF encontrou dois problemas reais (além de confirmar que o conteúdo/coerência estava correto):
+  1. **Linha de autoria estourando a margem da página** — "Pedro Remus de Ávila (NUSP 13682486), Murilo Gabriel Moraes de Azevedo (NUSP 13782776), Bruno Valle Martins (NU..." aparecia literalmente cortada no fim da página, com o NUSP do terceiro autor sumindo. O bloco único de autoria (correção anterior, 20h20) resolveu a centralização mas a linha ficou comprida demais para caber numa linha só.
+  2. **Faltavam `\usepackage[utf8]{inputenc}` e `\usepackage[T1]{fontenc}`** — o PDF renderiza visualmente correto, mas o texto extraído (copiar/colar, indexação, sistemas de antiplágio) sai corrompido em palavras acentuadas (ex.: "São Paulo" virando "S ´ ao Paulo ˜"), por falta de mapeamento ToUnicode correto nas fontes.
+- **Decisão:** (1) `\IEEEauthorblockN` do bloco único de autoria agora quebra cada autor+NUSP em sua própria linha via `\\`, eliminando o overflow sem reintroduzir o problema de centralização assimétrica das correções anteriores. (2) `inputenc`/`fontenc` adicionados ao preâmbulo, padrão para qualquer documento LaTeX com caracteres acentuados.
+- **Alternativas consideradas:** nenhuma — correções diretas de bugs reais encontrados em revisão.
+- **Impacto no artigo:** cabeçalho de autoria (visual) e integridade do texto extraído do PDF inteiro (não visível a olho nu, mas relevante para qualquer processamento automatizado do PDF).
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

@@ -128,6 +128,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** aumentar o tamanho da fonte/margens ou parafrasear trechos existentes de forma mais prolixa — descartado por ser enchimento sem conteúdo, indo contra a prática de honestidade científica já seguida no resto do artigo.
 - **Impacto no artigo:** Seções III, VI, VIII diretamente; deve ser recompilado no Overleaf para confirmar que passou de 6 páginas.
 
+## [2026-09-27 20h15] Coautores e NUSP adicionados ao artigo
+
+- **Contexto:** o grupo formalmente cadastrado na disciplina tem 3 integrantes (ver decisão registrada em 2026-09-26 sobre execução individual). O usuário pediu para adicionar os outros dois integrantes e os números USP de todos ao artigo.
+- **Decisão:** bloco de autoria do `paper/main.tex` atualizado para 3 autores via `\and` (formato padrão IEEEtran multi-autor): Pedro Remus de Ávila (NUSP 13682486, com acento corrigido), Murilo Gabriel Moraes de Azevedo (NUSP 13782776), Bruno Valle Martins (NUSP 13681036). E-mail institucional mantido só para o autor correspondente (Pedro), já que não temos os e-mails dos outros dois. Referências a "the author's" no texto (seção de custo) trocadas para "the authors'" para consistência. `README.md` também atualizado para listar os 3 autores em vez da nota sobre execução individual (que não deve aparecer em nenhum entregável).
+- **Alternativas consideradas:** nenhuma — atende diretamente ao pedido.
+- **Impacto no artigo:** bloco de autoria (topo) e seção de custo (pequeno ajuste de concordância).
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

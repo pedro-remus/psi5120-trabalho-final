@@ -30,11 +30,24 @@
 \title{Reliability and Observability Patterns for a Serverless Event-Driven Processing Pipeline on AWS: An Empirical Extension of a Lambda--SQS Architecture}
 
 \author{
-\IEEEauthorblockN{Pedro Remus de Avila}
-\IEEEauthorblockA{Escola Politécnica, Universidade de São Paulo\\
+\IEEEauthorblockN{Pedro Remus de Ávila}
+\IEEEauthorblockA{NUSP 13682486\\
+Escola Politécnica, Universidade de São Paulo\\
 PSI5120 --- Tópicos em Computação em Nuvem\\
 São Paulo, Brazil\\
 pedro.prda@usp.br}
+\and
+\IEEEauthorblockN{Murilo Gabriel Moraes de Azevedo}
+\IEEEauthorblockA{NUSP 13782776\\
+Escola Politécnica, Universidade de São Paulo\\
+PSI5120 --- Tópicos em Computação em Nuvem\\
+São Paulo, Brazil}
+\and
+\IEEEauthorblockN{Bruno Valle Martins}
+\IEEEauthorblockA{NUSP 13681036\\
+Escola Politécnica, Universidade de São Paulo\\
+PSI5120 --- Tópicos em Computação em Nuvem\\
+São Paulo, Brazil}
 }
 
 \maketitle
@@ -218,7 +231,7 @@ The CloudWatch alarm correctly transitioned \texttt{INSUFFICIENT\_DATA} $\righta
 We manually issued two identical requests sharing the same \texttt{event\_id}, six seconds apart, as described in \texttt{docs/ROTEIRO\_EXECUCAO.md} (Section~4.3), to simulate the at-least-once redelivery that SQS can produce independently of any handler failure. The consumer's structured logs record the first delivery as \texttt{"fase": "gravado"} and the second as \texttt{"fase": "duplicata\_idempotente"}, and a direct \texttt{GetItem} query against DynamoDB confirmed that exactly one item exists for that \texttt{event\_id}, with a \texttt{request\_id} field matching the \emph{first} Lambda execution, not the second --- proof that the conditional write on the second delivery was rejected (\texttt{ConditionalCheckFailedException}) rather than silently overwriting the existing record. This confirms the idempotent-persistence mechanism described in Section~IV behaves as designed under a direct test of duplicate delivery, subject to the effect-versus-execution caveat discussed in Section~VII-A.
 
 \subsection{Cost}
-Because both Lambda functions run in well under a second per invocation and all other services used (API Gateway HTTP API, SQS, DynamoDB on-demand, CloudWatch, SNS) bill per request/GB with a free tier, the workload evaluated here remained within AWS's free-tier allowances. No resource in the stack carries a fixed hourly cost: there is no EC2 instance, no NAT gateway, no load balancer, and no provisioned database capacity, so the marginal cost of the entire experimental campaign described in this paper --- one full deploy/teardown cycle, three manual test scenarios, and 160 load-test requests --- was, by design, a small fraction of the author's self-imposed \$10 budget on a trial AWS account, dominated by the two always-charged fixed-rate items in the stack: the CloudWatch dashboard (\$3.00/month, prorated to the few hours it was kept running) and the CloudWatch alarm (\$0.10/month, similarly prorated). This stands in direct contrast to the EKS-based laboratory earlier in the course, whose pricing exercise (Aula~06 materials) recorded non-zero hourly rates for EC2 worker nodes, the EKS control plane, and an Application Load Balancer regardless of whether the cluster is actively serving traffic --- a structural cost difference, not merely a difference in the specific numbers observed, since a serverless pipeline's idle cost is zero by construction while a cluster's idle cost is not.
+Because both Lambda functions run in well under a second per invocation and all other services used (API Gateway HTTP API, SQS, DynamoDB on-demand, CloudWatch, SNS) bill per request/GB with a free tier, the workload evaluated here remained within AWS's free-tier allowances. No resource in the stack carries a fixed hourly cost: there is no EC2 instance, no NAT gateway, no load balancer, and no provisioned database capacity, so the marginal cost of the entire experimental campaign described in this paper --- one full deploy/teardown cycle, three manual test scenarios, and 160 load-test requests --- was, by design, a small fraction of the authors' self-imposed \$10 budget on a trial AWS account, dominated by the two always-charged fixed-rate items in the stack: the CloudWatch dashboard (\$3.00/month, prorated to the few hours it was kept running) and the CloudWatch alarm (\$0.10/month, similarly prorated). This stands in direct contrast to the EKS-based laboratory earlier in the course, whose pricing exercise (Aula~06 materials) recorded non-zero hourly rates for EC2 worker nodes, the EKS control plane, and an Application Load Balancer regardless of whether the cluster is actively serving traffic --- a structural cost difference, not merely a difference in the specific numbers observed, since a serverless pipeline's idle cost is zero by construction while a cluster's idle cost is not.
 
 Table~\ref{tab:cost} lists the published on-demand rate for each billable dimension of the stack (\texttt{us-east-1}, list prices at the time of writing~\cite{awspricing}) alongside the quantity actually consumed by the experimental campaign in this paper, to make the zero-idle-cost claim concrete rather than qualitative.
 
@@ -241,7 +254,7 @@ CloudWatch dashboard & \$3.00 / dashboard / month & Yes (prorated) \\
 \end{tabular}
 \end{table}
 
-Only the last two rows carry any fixed charge, and both are prorated to hours actually provisioned rather than billed as a full month; every other row scales strictly with the 168 requests issued in total across the manual tests, the two load-test rounds, and the follow-up verification calls in this study (Sections~VI--VII), which is why the entire experimental campaign remained a small fraction of the author's self-imposed \$10 budget on a trial account.
+Only the last two rows carry any fixed charge, and both are prorated to hours actually provisioned rather than billed as a full month; every other row scales strictly with the 168 requests issued in total across the manual tests, the two load-test rounds, and the follow-up verification calls in this study (Sections~VI--VII), which is why the entire experimental campaign remained a small fraction of the authors' self-imposed \$10 budget on a trial account.
 
 \section{Discussion}
 

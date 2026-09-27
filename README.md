@@ -67,4 +67,8 @@ Depois, siga o `docs/ROTEIRO_EXECUCAO.md` a partir da seção 4 para testar, ger
 
 ## Autoria
 
-Trabalho individual (grupo formalmente cadastrado, executado por um integrante), disciplina PSI5120 — 2026.
+- Pedro Remus de Ávila (NUSP 13682486)
+- Murilo Gabriel Moraes de Azevedo (NUSP 13782776)
+- Bruno Valle Martins (NUSP 13681036)
+
+Disciplina PSI5120 — Tópicos em Computação em Nuvem, Escola Politécnica da Universidade de São Paulo, 2026.

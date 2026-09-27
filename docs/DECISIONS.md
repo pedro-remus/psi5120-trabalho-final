@@ -71,10 +71,10 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** guardar evidências dentro de `results/` junto dos CSVs/gráficos — descartado para manter a separação entre "dados quantitativos do experimento" (`results/`) e "prova de execução manual" (`evidencias/`), que têm propósitos e formatos diferentes.
 - **Impacto no artigo:** nenhuma seção nova, mas é a fonte primária para preencher os `[PREENCHER]` da seção *Experimental Evaluation* e para eventuais capturas de tela que se queira incluir como figuras adicionais.
 
-## [2026-09-26 16:05] Artefato interativo do roteiro (Claude Artifact)
+## [2026-09-26 16:05] Checklist interativo do roteiro (página web)
 
 - **Contexto:** o usuário pediu uma versão do roteiro de execução utilizável como referência rápida durante a implantação na AWS, além do markdown já existente em `docs/ROTEIRO_EXECUCAO.md`.
-- **Decisão:** publicado um Artifact (checklist interativo) espelhando o conteúdo do roteiro — https://claude.ai/code/artifact/ea8b5593-734b-451e-b787-0068966f9084 — com os 25 itens de verificação, comandos com botão de copiar, tabela de troubleshooting e barra de progresso. O progresso marcado é persistido (via capacidade `db` do Artifact, por usuário, com fallback em `localStorage` do navegador se a sincronização não estiver disponível). O `docs/ROTEIRO_EXECUCAO.md` continua sendo a fonte de verdade versionada no repositório; o Artifact é um complemento de uso, não substitui a documentação.
+- **Decisão:** publicado um checklist interativo em página web espelhando o conteúdo do roteiro, com os 25 itens de verificação, comandos com botão de copiar, tabela de troubleshooting e barra de progresso. O progresso marcado é persistido por usuário, com fallback em `localStorage` do navegador se a sincronização não estiver disponível. O `docs/ROTEIRO_EXECUCAO.md` continua sendo a fonte de verdade versionada no repositório; a página é um complemento de uso, não substitui a documentação.
 - **Alternativas consideradas:** nenhuma — atende diretamente ao pedido.
 - **Impacto no artigo:** nenhum diretamente; é uma ferramenta operacional, não um artefato de pesquisa a ser citado.
 
@@ -92,10 +92,10 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** nenhuma — correção e atualização direta.
 - **Impacto no artigo:** nenhum.
 
-## [2026-09-27 09h10] Execução assumida pelo Claude + teto de custo de US$10
+## [2026-09-27 09h10] Execução assumida por assistente de IA + teto de custo de US$10
 
-- **Contexto:** após instalar e configurar o AWS CLI (usuário IAM `pedro-psi5120`, identidade confirmada — `evidencias/cli-output/E1_identidade_aws.txt`), o usuário pediu para o Claude assumir a execução do deploy/testes/load test/limpeza diretamente via terminal (a mesma máquina onde o CLI está configurado), em vez de rodar cada comando manualmente. O usuário está usando conta AWS gratuita/créditos trial e impôs um teto explícito de **US$10 em custos totais**.
-- **Decisão:** Claude assume a execução dos comandos AWS CLI diretamente. Estimativa de custo do stack (nenhum recurso com custo fixo por hora — sem EC2/NAT Gateway/Load Balancer/RDS; tudo pay-per-request dentro do Free Tier) é bem menos de US$1 para o volume de teste planejado. Para respeitar o teto: (1) o `cleanup.sh` será executado assim que as evidências forem coletadas, em vez de deixar a stack no ar por conveniência; (2) o volume do teste de carga (`load_test.py --total`) será mantido em uma escala modesta (dezenas a poucas centenas de requisições), não milhares; (3) qualquer ação de deploy/limpeza continua sendo confirmada com o usuário antes de executar, mesmo com a execução delegada.
+- **Contexto:** após instalar e configurar o AWS CLI (usuário IAM `pedro-psi5120`, identidade confirmada — `evidencias/cli-output/E1_identidade_aws.txt`), o usuário pediu para o assistente de IA assumir a execução do deploy/testes/load test/limpeza diretamente via terminal (a mesma máquina onde o CLI está configurado), em vez de rodar cada comando manualmente. O usuário está usando conta AWS gratuita/créditos trial e impôs um teto explícito de **US$10 em custos totais**.
+- **Decisão:** o assistente de IA assume a execução dos comandos AWS CLI diretamente. Estimativa de custo do stack (nenhum recurso com custo fixo por hora — sem EC2/NAT Gateway/Load Balancer/RDS; tudo pay-per-request dentro do Free Tier) é bem menos de US$1 para o volume de teste planejado. Para respeitar o teto: (1) o `cleanup.sh` será executado assim que as evidências forem coletadas, em vez de deixar a stack no ar por conveniência; (2) o volume do teste de carga (`load_test.py --total`) será mantido em uma escala modesta (dezenas a poucas centenas de requisições), não milhares; (3) qualquer ação de deploy/limpeza continua sendo confirmada com o usuário antes de executar, mesmo com a execução delegada.
 - **Alternativas consideradas:** deixar a stack no ar até o fim do dia por flexibilidade — descartado em favor de minimizar custo, dado o teto explícito e o uso de créditos trial.
 - **Impacto no artigo:** nenhum diretamente; pode alimentar a seção de custo (*Experimental Evaluation*) com o custo real observado, se o usuário quiser conferir a fatura depois.
 
@@ -150,6 +150,20 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Decisão:** (1) `\IEEEauthorblockN` do bloco único de autoria agora quebra cada autor+NUSP em sua própria linha via `\\`, eliminando o overflow sem reintroduzir o problema de centralização assimétrica das correções anteriores. (2) `inputenc`/`fontenc` adicionados ao preâmbulo, padrão para qualquer documento LaTeX com caracteres acentuados.
 - **Alternativas consideradas:** nenhuma — correções diretas de bugs reais encontrados em revisão.
 - **Impacto no artigo:** cabeçalho de autoria (visual) e integridade do texto extraído do PDF inteiro (não visível a olho nu, mas relevante para qualquer processamento automatizado do PDF).
+
+## [2026-09-27 20h55] Correção de estouro de margem em identificadores longos no artigo
+
+- **Contexto:** revisão do PDF compilado encontrou um segundo caso de texto estourando a margem da página: a string de código `ConditionExpression=attribute_not_exists(event_id)`, dentro de `\texttt{}`, é longa demais para quebrar de linha sozinha (LaTeX não hifeniza dentro de `\texttt` por padrão).
+- **Decisão:** adicionado `\usepackage{seqsplit}` ao preâmbulo e aplicado `\seqsplit{}` a todos os identificadores de código inline com 30+ caracteres sem espaços (`ConditionExpression=attribute_not_exists(event_id)`, `ConditionalCheckFailedException` ×3, `ApproximateNumberOfMessagesVisible`, `ApproximateNumberOfMessages`), permitindo quebra de linha em qualquer ponto do identificador quando necessário.
+- **Alternativas consideradas:** reescrever as frases para encurtar os identificadores — descartado por reduzir a precisão técnica (esses são nomes literais de parâmetros/exceções da AWS, não paráfrases).
+- **Impacto no artigo:** Seções III-F, V-B, VI-C, VI-D (nenhuma mudança de conteúdo, só de quebra de linha).
+
+## [2026-09-27 21h00] Remoção de menções ao assistente de IA no log de decisões
+
+- **Contexto:** o usuário pediu para remover do repositório remoto qualquer referência à ferramenta de IA usada no desenvolvimento.
+- **Decisão:** três entradas deste arquivo (sobre o checklist interativo e sobre a execução delegada dos comandos AWS) foram reescritas em linguagem neutra, sem nomear a ferramenta; o link do checklist interativo (hospedado em domínio da ferramenta) também foi removido do texto. Uma busca completa no repositório confirmou que não restam menções no estado atual dos arquivos. Nota: commits antigos já publicados no histórico do repositório ainda contêm o texto anterior nos seus diffs — remover isso exigiria reescrever o histórico (`git filter-repo` ou rebase interativo) seguido de `push --force`, uma operação destrutiva que não foi executada sem confirmação explícita.
+- **Alternativas consideradas:** reescrever o histórico do repositório imediatamente — não executado por ser uma ação destrutiva/irreversível sobre um repositório remoto, que exige confirmação explícita do usuário antes de qualquer `push --force`.
+- **Impacto no artigo:** nenhum (o artigo em si nunca mencionou a ferramenta).
 
 ---
 

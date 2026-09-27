@@ -92,6 +92,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** nenhuma — correção e atualização direta.
 - **Impacto no artigo:** nenhum.
 
+## [2026-09-27 09h10] Execução assumida pelo Claude + teto de custo de US$10
+
+- **Contexto:** após instalar e configurar o AWS CLI (usuário IAM `pedro-psi5120`, identidade confirmada — `evidencias/cli-output/E1_identidade_aws.txt`), o usuário pediu para o Claude assumir a execução do deploy/testes/load test/limpeza diretamente via terminal (a mesma máquina onde o CLI está configurado), em vez de rodar cada comando manualmente. O usuário está usando conta AWS gratuita/créditos trial e impôs um teto explícito de **US$10 em custos totais**.
+- **Decisão:** Claude assume a execução dos comandos AWS CLI diretamente. Estimativa de custo do stack (nenhum recurso com custo fixo por hora — sem EC2/NAT Gateway/Load Balancer/RDS; tudo pay-per-request dentro do Free Tier) é bem menos de US$1 para o volume de teste planejado. Para respeitar o teto: (1) o `cleanup.sh` será executado assim que as evidências forem coletadas, em vez de deixar a stack no ar por conveniência; (2) o volume do teste de carga (`load_test.py --total`) será mantido em uma escala modesta (dezenas a poucas centenas de requisições), não milhares; (3) qualquer ação de deploy/limpeza continua sendo confirmada com o usuário antes de executar, mesmo com a execução delegada.
+- **Alternativas consideradas:** deixar a stack no ar até o fim do dia por flexibilidade — descartado em favor de minimizar custo, dado o teto explícito e o uso de créditos trial.
+- **Impacto no artigo:** nenhum diretamente; pode alimentar a seção de custo (*Experimental Evaluation*) com o custo real observado, se o usuário quiser conferir a fatura depois.
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

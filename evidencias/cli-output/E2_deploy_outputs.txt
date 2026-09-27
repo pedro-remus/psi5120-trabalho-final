@@ -1,0 +1,32 @@
+== Identidade AWS atual ==
+{
+    "UserId": "AIDAS6WI3NXXZJDSVZFMM",
+    "Account": "203358432751",
+    "Arn": "arn:aws:iam::203358432751:user/pedro-psi5120"
+}
+
+== Deploy da stack 'psi5120-tf-serverless' na regiao 'us-east-1' (perfil 'pedro-psi5120') ==
+
+Waiting for changeset to be created..
+Waiting for stack create/update to complete
+Successfully created/updated stack - psi5120-tf-serverless
+
+== Outputs da stack ==
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|                                                                         DescribeStacks                                                                          |
++--------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
+|                       Description                      |       OutputKey       |                                  OutputValue                                   |
++--------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
+|                                                        |  DashboardName        |  psi5120-tf-serverless-dashboard                                               |
+|                                                        |  ConsumerFunctionName |  psi5120-tf-serverless-consumer                                                |
+|                                                        |  MainQueueUrl         |  https://sqs.us-east-1.amazonaws.com/203358432751/psi5120-tf-serverless-queue  |
+|                                                        |  DLQUrl               |  https://sqs.us-east-1.amazonaws.com/203358432751/psi5120-tf-serverless-dlq    |
+|  URL base da API. Envie POST para <ApiEndpoint>/events |  ApiEndpoint          |  https://rey682jail.execute-api.us-east-1.amazonaws.com                        |
+|                                                        |  DLQArn               |  arn:aws:sqs:us-east-1:203358432751:psi5120-tf-serverless-dlq                  |
+|                                                        |  ProducerFunctionName |  psi5120-tf-serverless-producer                                                |
+|                                                        |  EventsTableName      |  psi5120-tf-serverless-events                                                  |
+|                                                        |  NotificationTopicArn |  arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes              |
++--------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
+
+IMPORTANTE: confirme a assinatura do SNS no e-mail 'pedro.prda@usp.br' (a AWS envia um
+e-mail de confirmacao) para que os alarmes da DLQ cheguem de fato.

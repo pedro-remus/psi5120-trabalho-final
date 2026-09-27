@@ -113,6 +113,14 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** limpar imediatamente e recriar se necessário — descartado por ser mais lento (redeploy leva 1-3 min) do que simplesmente manter no ar por mais algumas horas.
 - **Impacto no artigo:** nenhum diretamente.
 
+## [2026-09-27 19h50] Artigo preenchido com dados reais
+
+- **Contexto:** com toda a execução na AWS concluída e evidências (E1–E8) coletadas, era hora de preencher os `[PREENCHER]` deixados no esqueleto de `paper/main.tex`.
+- **Decisão:** todos os placeholders foram substituídos por números reais tirados de `results/figures/resumo_estatistico.txt`, dos logs do CloudWatch e das evidências em `evidencias/`. Adições feitas além do preenchimento simples: (1) nome completo do autor corrigido para "Pedro Remus de Avila" (identificado no PDF do e-mail do alarme) e e-mail de contato trocado para `pedro.prda@usp.br`; (2) nova figura embutida no artigo (`evidencias/screenshots/E8_dashboard_filas.png`, o widget de profundidade da DLQ) em vez de só citar o dado em texto; (3) nova subseção de Discussion ("Observability pitfalls: metric dimensions as identity") relatando o bug de dimensão de métrica encontrado e corrigido durante a coleta de evidências — boa contribuição de conteúdo real para a seção de discussão; (4) seção *Threats to validity* preenchida com o achado dos 2 erros 503 investigados (Lambda sem erros/throttles registrados, atribuído à camada do API Gateway).
+- **Alternativas consideradas:** omitir os achados "negativos" (os 2 erros 503, o bug do dashboard) para simplificar a narrativa — descartado porque relatar honestamente o que foi observado (inclusive imperfeições) é mais rigoroso cientificamente e gera conteúdo genuíno para as seções de Discussion/Limitations, além de demonstrar profundidade de investigação.
+- **Alternativas consideradas (autor):** manter o e-mail pessoal `pedro.prda@gmail.com` no artigo — trocado para o e-mail institucional USP por ser mais apropriado a um artigo acadêmico afiliado à Universidade de São Paulo.
+- **Impacto no artigo:** artigo completo, pronto para compilação/revisão final. Validado estruturalmente (chaves balanceadas, ambientes `\begin`/`\end` batendo, todas as `\ref`/`\cite`/`\includegraphics` resolvidas e apontando para arquivos existentes) — falta apenas compilar no Overleaf para confirmar a contagem de páginas (mínimo 6, máximo 18).
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

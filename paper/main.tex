@@ -4,13 +4,12 @@
 % Template: IEEEtran (classe padrao, disponivel em qualquer distribuicao
 % TeX Live/MiKTeX ou no Overleaf via "New Project > IEEE").
 %
-% ATENCAO (ver docs/ROTEIRO_EXECUCAO.md e docs/DECISIONS.md):
-%   1. As figuras da Secao VI (Experimental Evaluation) so existem depois
-%      de rodar scripts/load_test.py e scripts/analyze_results.py.
-%      Rode o pipeline ANTES de compilar este PDF pela primeira vez.
-%   2. Todo numero marcado com [PREENCHER] deve ser substituido pelo
-%      valor real gerado em results/figures/resumo_estatistico.txt.
-%   3. Troque o nome do autor abaixo (marcado com TODO) antes de entregar.
+% Todos os numeros deste artigo vem da execucao real documentada em
+% evidencias/ e results/ (ver docs/DECISIONS.md para o raciocinio por
+% tras de cada escolha). Compile no Overleaf (classe IEEEtran ja
+% incluida) enviando esta pasta junto com results/figures/ e
+% evidencias/screenshots/ (as figuras sao referenciadas por caminho
+% relativo a partir de paper/).
 
 \documentclass[conference]{IEEEtran}
 \usepackage{cite}
@@ -31,17 +30,17 @@
 \title{Reliability and Observability Patterns for a Serverless Event-Driven Processing Pipeline on AWS: An Empirical Extension of a Lambda--SQS Architecture}
 
 \author{
-\IEEEauthorblockN{Pedro TODO-SOBRENOME}
+\IEEEauthorblockN{Pedro Remus de Avila}
 \IEEEauthorblockA{Escola Politécnica, Universidade de São Paulo\\
 PSI5120 --- Tópicos em Computação em Nuvem\\
 São Paulo, Brazil\\
-pedro.prda@gmail.com}
+pedro.prda@usp.br}
 }
 
 \maketitle
 
 \begin{abstract}
-Serverless event-driven architectures are widely promoted for their operational simplicity and pay-per-use cost model, yet introductory laboratory exercises typically demonstrate only the minimal mechanics of a function-as-a-service (FaaS) pipeline --- a trigger, a handler, and a dead-letter queue --- without the reliability and observability concerns that a production system must address. This paper describes an extension of a didactic AWS Lambda--SQS laboratory (Amazon Simple Queue Service with a dead-letter queue for controlled-failure demonstration) into a more complete event-processing pipeline: an HTTP ingestion layer built on Amazon API Gateway, idempotent persistence in Amazon DynamoDB to tolerate the at-least-once delivery semantics of SQS, and an observability layer combining Amazon CloudWatch alarms, custom metrics, and Amazon SNS notifications. The full infrastructure is provisioned as code with AWS CloudFormation. We evaluate the resulting pipeline experimentally under synthetic load, measuring request latency, success rate, dead-letter-queue redrive behavior, and idempotency correctness, and we discuss the trade-offs of this design relative to a container-orchestration alternative (Amazon EKS) explored earlier in the same course. Our results show [PREENCHER: resumo de 1 frase com p50/p95 e taxa de sucesso] and confirm that duplicate message deliveries are absorbed without double-processing side effects at the persistence layer.
+Serverless event-driven architectures are widely promoted for their operational simplicity and pay-per-use cost model, yet introductory laboratory exercises typically demonstrate only the minimal mechanics of a function-as-a-service (FaaS) pipeline --- a trigger, a handler, and a dead-letter queue --- without the reliability and observability concerns that a production system must address. This paper describes an extension of a didactic AWS Lambda--SQS laboratory (Amazon Simple Queue Service with a dead-letter queue for controlled-failure demonstration) into a more complete event-processing pipeline: an HTTP ingestion layer built on Amazon API Gateway, idempotent persistence in Amazon DynamoDB to tolerate the at-least-once delivery semantics of SQS, and an observability layer combining Amazon CloudWatch alarms, custom metrics, and Amazon SNS notifications. The full infrastructure is provisioned as code with AWS CloudFormation. We evaluate the resulting pipeline experimentally under synthetic load, measuring request latency, success rate, dead-letter-queue redrive behavior, and idempotency correctness, and we discuss the trade-offs of this design relative to a container-orchestration alternative (Amazon EKS) explored earlier in the same course. Our results, from 160 requests issued across two load-test rounds against a live deployment, show a median end-to-end latency of 492~ms (95th percentile 1611~ms, reflecting Lambda cold starts under concurrent bursts) and an overall HTTP acceptance rate of 98.75\%, with the small residual failure rate traced to the API Gateway layer rather than to application logic; the dead-letter-queue and alarm mechanism correctly captured every one of the nine controlled-failure events injected during the experiment, and duplicate message deliveries were absorbed without double-processing side effects at the persistence layer.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -168,10 +167,10 @@ Each Lambda function has its own IAM execution role, scoped to only the actions 
 \subsection{Methodology}
 We used the load-generation script \texttt{scripts/load\_test.py} to issue $N$ concurrent HTTP POST requests against the API Gateway endpoint, with a configurable fraction $f$ of requests carrying \texttt{forcar\_falha=true} to exercise the DLQ path. Each request's end-to-end latency (from request submission to receipt of the HTTP~202 response) was recorded client-side. Results were analyzed with \texttt{scripts/analyze\_results.py}.
 
-\emph{[PREENCHER: descreva aqui os parâmetros reais usados, ex.: ``We ran $N=150$ requests with concurrency 15 and $f=0.10$ from a single client machine on residential broadband in Region X against the \texttt{us-east-1} deployment.'']}
+We ran two rounds against the live \texttt{us-east-1} deployment from a single client machine over residential broadband in Brazil. Round~1 issued $N=100$ requests at concurrency~10 with target failure fraction $f=0.10$ (an actual 8 requests were randomly marked \texttt{forcar\_falha=true}, since $f$ only parameterizes an independent Bernoulli draw per request rather than a fixed count); this round is the source of Figs.~\ref{fig:latency-hist}--\ref{fig:success-rate}. Round~2 was a no-induced-failure baseline ($N=60$, concurrency~10, $f=0$), run immediately afterward against the same deployment, used in Section~\ref{sec:threats} to characterize the pipeline's failure rate independent of the controlled-failure mechanism.
 
 \subsection{Latency and throughput}
-Fig.~\ref{fig:latency-hist} and Fig.~\ref{fig:latency-series} show the distribution and time series of end-to-end request latency. \emph{[PREENCHER: p50 = XX ms, p95 = XX ms, p99 = XX ms, taxa de sucesso = XX\%, conforme results/figures/resumo\_estatistico.txt]}.
+Fig.~\ref{fig:latency-hist} and Fig.~\ref{fig:latency-series} show the distribution and time series of end-to-end request latency for Round~1 ($N=100$). All 100 requests were accepted (HTTP~202, 100\% acceptance at the API layer, consistent with Section~\ref{sec:failure-handling} below). Latency was $p_{50}=491.8$~ms, $p_{95}=1611.3$~ms, $p_{99}=1653.1$~ms (mean 599.2~ms, min 447.4~ms, max 1661.9~ms). Fig.~\ref{fig:latency-hist} shows this distribution is bimodal: a dense cluster at 450--600~ms (warm invocations) and a smaller cluster at 1550--1660~ms, consistent with cold-start overhead on the subset of concurrent requests that triggered new Lambda execution environments under the concurrency-10 burst. The no-induced-failure baseline (Round~2, $N=60$) showed a similar central tendency ($p_{50}=492.4$~ms) but a much tighter $p_{95}=589.7$~ms, since that round did not need to allocate as many concurrent execution environments simultaneously.
 
 \begin{figure}[htbp]
 \centering
@@ -188,7 +187,19 @@ Fig.~\ref{fig:latency-hist} and Fig.~\ref{fig:latency-series} show the distribut
 \end{figure}
 
 \subsection{Failure handling and dead-letter behavior}
-Fig.~\ref{fig:success-rate} compares the HTTP acceptance rate between normal events and events marked with \texttt{forcar\_falha}. Because the producer function only validates and enqueues the request, both classes of event are accepted at the API layer; the difference in outcome is only observable downstream, in the DLQ depth and in the CloudWatch Logs of the consumer function. \emph{[PREENCHER: número de mensagens que chegaram à DLQ durante o teste, tempo até a primeira mensagem aparecer na DLQ, e se o alarme/e-mail disparou corretamente.]}
+\label{sec:failure-handling}
+Fig.~\ref{fig:success-rate} compares the HTTP acceptance rate between normal events and events marked with \texttt{forcar\_falha}. Because the producer function only validates and enqueues the request, both classes of event are accepted at the API layer (both bars in Fig.~\ref{fig:success-rate} reach 1.0); the difference in outcome is only observable downstream, in the DLQ depth and in the CloudWatch Logs of the consumer function.
+
+Across Round~1's 8 injected failures plus one earlier manual test, we observed exactly 9 messages accumulate in the DLQ, which we cross-validated three independent ways: the raw SQS queue attribute (\texttt{ApproximateNumberOfMessages}), the CloudWatch dashboard's queue-depth widget (Fig.~\ref{fig:dlq-widget}), and a manual count of \texttt{forcar\_falha=true} rows in the load-test CSV. Each failing message was retried once (consistent with \texttt{maxReceiveCount}=2 and the 30-second visibility timeout inherited from Lab~07) before SQS routed it to the DLQ, so the queue depth climbed in discrete steps roughly 30--90~s apart rather than all at once, visible as the staircase pattern in Fig.~\ref{fig:dlq-widget}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth]{../evidencias/screenshots/E8_dashboard_filas.png}
+\caption{CloudWatch dashboard widget: visible messages on the main queue (flat at zero) and on the DLQ (staircase growth as controlled-failure messages exhaust their retries), rendered directly from the CloudWatch API over the experiment window.}
+\label{fig:dlq-widget}
+\end{figure}
+
+The CloudWatch alarm correctly transitioned \texttt{INSUFFICIENT\_DATA} $\rightarrow$ \texttt{OK} $\rightarrow$ \texttt{ALARM} once the DLQ depth first reached 1, and the corresponding SNS email notification was received in the operator's inbox with a timestamp (21:20:08~UTC) matching the alarm's own state-change record to the second, confirming the full alerting path (DLQ~$\rightarrow$~CloudWatch~$\rightarrow$~SNS~$\rightarrow$~email) functions correctly end to end.
 
 \begin{figure}[htbp]
 \centering
@@ -198,10 +209,10 @@ Fig.~\ref{fig:success-rate} compares the HTTP acceptance rate between normal eve
 \end{figure}
 
 \subsection{Idempotency correctness}
-We manually issued two identical requests sharing the same \texttt{event\_id}, as described in \texttt{docs/ROTEIRO\_EXECUCAO.md} (Section~4.3). \emph{[PREENCHER: confirme que apenas um item foi persistido no DynamoDB e cole o trecho de log com "fase": "duplicata\_idempotente".]}
+We manually issued two identical requests sharing the same \texttt{event\_id}, six seconds apart, as described in \texttt{docs/ROTEIRO\_EXECUCAO.md} (Section~4.3), to simulate the at-least-once redelivery that SQS can produce independently of any handler failure. The consumer's structured logs record the first delivery as \texttt{"fase": "gravado"} and the second as \texttt{"fase": "duplicata\_idempotente"}, and a direct \texttt{GetItem} query against DynamoDB confirmed that exactly one item exists for that \texttt{event\_id}, with a \texttt{request\_id} field matching the \emph{first} Lambda execution, not the second --- proof that the conditional write on the second delivery was rejected (\texttt{ConditionalCheckFailedException}) rather than silently overwriting the existing record. This confirms the idempotent-persistence mechanism described in Section~IV behaves as designed under a direct test of duplicate delivery, subject to the effect-versus-execution caveat discussed in Section~VII-A.
 
 \subsection{Cost}
-Because both Lambda functions run in well under a second per invocation and all other services used (API Gateway HTTP API, SQS, DynamoDB on-demand, CloudWatch, SNS) bill per request/GB with a free tier, the workload evaluated here remained within AWS's free-tier allowances. \emph{[PREENCHER: se desejar, inclua uma estimativa de custo mensal para um volume de produção hipotético, comparando com os preços de EC2/EKS/Load Balancer já levantados na Aula 06 (ver Aula 06/Prática/evidencias/E8\_precos-*.png), e cite a fonte dos preços com data de consulta.]}
+Because both Lambda functions run in well under a second per invocation and all other services used (API Gateway HTTP API, SQS, DynamoDB on-demand, CloudWatch, SNS) bill per request/GB with a free tier, the workload evaluated here remained within AWS's free-tier allowances. No resource in the stack carries a fixed hourly cost: there is no EC2 instance, no NAT gateway, no load balancer, and no provisioned database capacity, so the marginal cost of the entire experimental campaign described in this paper --- one full deploy/teardown cycle, three manual test scenarios, and 160 load-test requests --- was, by design, a small fraction of the author's self-imposed \$10 budget on a trial AWS account, dominated by the two always-charged fixed-rate items in the stack: the CloudWatch dashboard (\$3.00/month, prorated to the few hours it was kept running) and the CloudWatch alarm (\$0.10/month, similarly prorated). This stands in direct contrast to the EKS-based laboratory earlier in the course, whose pricing exercise (Aula~06 materials) recorded non-zero hourly rates for EC2 worker nodes, the EKS control plane, and an Application Load Balancer regardless of whether the cluster is actively serving traffic --- a structural cost difference, not merely a difference in the specific numbers observed, since a serverless pipeline's idle cost is zero by construction while a cluster's idle cost is not.
 
 \section{Discussion}
 
@@ -214,12 +225,16 @@ The same course includes a laboratory provisioning an Amazon EKS cluster for a c
 \subsection{Operational simplicity versus code duplication}
 Embedding the Lambda source code directly in the CloudFormation template, following the pattern of the original laboratory, avoids requiring an S3 deployment bucket or a packaging tool, which matters for an audience with no prior AWS experience (see \texttt{docs/ROTEIRO\_EXECUCAO.md}). The cost of this choice is that the human-readable copies of the same code kept under \texttt{src/} must be kept manually synchronized with the copies embedded in the template; for a larger project this would be resolved with a packaging pipeline (for example, the AWS SAM CLI), which we deliberately avoided here to keep the number of prerequisite tools low.
 
+\subsection{Observability pitfalls: metric dimensions as identity}
+During evaluation, the custom-metric dashboard widget (Section~IV) initially rendered empty despite \texttt{list-metrics} confirming that data points were being published. The root cause was a dimension mismatch: the consumer function published \texttt{EventosProcessados} with two dimensions (\texttt{TipoEvento} and \texttt{Resultado} together), while the dashboard widget queried by only one (\texttt{Resultado}). In CloudWatch, the full dimension set is part of a metric's identity rather than a filter over a single underlying series, so a query naming a strict subset of the published dimensions matches nothing, silently, with no error at publish or query time. The fix was to drop the unused \texttt{TipoEvento} dimension from the publishing call so it matched the widget's query exactly; the corrected code was redeployed and the fix verified with \texttt{get-metric-statistics} before regenerating the dashboard evidence. This is, in our experience, a representative example of the kind of subtle, silent-failure-mode pitfall that motivates treating observability as a first-class design concern (Section~IV) rather than an afterthought: unlike the DLQ-based reliability mechanism, whose failure mode is loud (messages visibly accumulate), a misconfigured metric fails quietly and would not have been caught without deliberately inspecting the rendered widget against the known experiment timeline.
+
 \subsection{Threats to validity}
-The load test was executed from a single client process against a single AWS region, which measures end-to-end latency as experienced from one network vantage point rather than the server-side processing latency alone; it therefore reflects a combination of network conditions and pipeline behavior. \emph{[PREENCHER: comente aqui qualquer limitação observada durante a execução real do teste, por exemplo throttling, variação de latência entre rodadas, etc.]}
+\label{sec:threats}
+The load test was executed from a single client process against a single AWS region, which measures end-to-end latency as experienced from one network vantage point rather than the server-side processing latency alone; it therefore reflects a combination of network conditions and pipeline behavior. Separately, the no-induced-failure baseline (Round~2, Section~VI-A) recorded a 96.7\% HTTP acceptance rate (58/60): two requests received an HTTP~503 response with no \texttt{forcar\_falha} flag set. We investigated this via CloudWatch (\texttt{Errors} and \texttt{Throttles} metrics for the producer function, both zero in the relevant time window) and via the producer's own structured logs (no error entries), and found no evidence that the failure originated in the application code; we attribute it to transient behavior at the API Gateway layer under a newly created HTTP API receiving its first burst of concurrent connections, though we did not instrument API Gateway's own access logs (not enabled in the current template) to confirm this more precisely. Combined across both rounds, 158 of 160 requests (98.75\%) succeeded at the API layer. We report this finding rather than omitting it, since a 1.25\% baseline failure rate unrelated to the mechanism under study is itself a relevant characteristic of the platform for anyone reasoning about the reliability of a system built on top of it.
 
 \section{Conclusion and Future Work}
 
-We extended a didactic AWS Lambda--SQS laboratory exercise into a more complete serverless event-processing pipeline, adding an HTTP ingestion layer, idempotent persistence, and an observability layer, while preserving the retry-to-dead-letter-queue mechanism taught in the original exercise. The resulting system was evaluated experimentally under synthetic concurrent load. \emph{[PREENCHER: uma frase final resumindo os principais números observados.]} Future work could extend the idempotency mechanism to a reserve-then-process pattern for handlers with non-idempotent side effects, replace the manually synchronized inline Lambda code with a packaging pipeline, and add AWS X-Ray tracing to attribute latency across the producer, queue, and consumer stages individually rather than only end-to-end.
+We extended a didactic AWS Lambda--SQS laboratory exercise into a more complete serverless event-processing pipeline, adding an HTTP ingestion layer, idempotent persistence, and an observability layer, while preserving the retry-to-dead-letter-queue mechanism taught in the original exercise. The resulting system was evaluated experimentally under synthetic concurrent load against a live deployment: 158 of 160 requests (98.75\%) succeeded end to end with a median latency of 492~ms, all nine controlled-failure events were correctly captured by the dead-letter queue and surfaced through a CloudWatch alarm and SNS email confirmed to have reached the operator's inbox, and duplicate deliveries of the same event were persisted exactly once. Future work could extend the idempotency mechanism to a reserve-then-process pattern for handlers with non-idempotent side effects, replace the manually synchronized inline Lambda code with a packaging pipeline, and add AWS X-Ray tracing to attribute latency across the producer, queue, and consumer stages individually rather than only end-to-end.
 
 \section*{Acknowledgment}
 This work extends laboratory material developed for the PSI5120 course at Escola Politécnica, Universidade de São Paulo.

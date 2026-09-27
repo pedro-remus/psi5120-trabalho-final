@@ -135,6 +135,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** nenhuma — atende diretamente ao pedido.
 - **Impacto no artigo:** bloco de autoria (topo) e seção de custo (pequeno ajuste de concordância).
 
+## [2026-09-27 20h20] Correção do layout do cabeçalho de autoria
+
+- **Contexto:** o formato multi-autor padrão do IEEEtran (3 blocos separados por `\and`) quebrou de forma estranha na compilação: 2 autores na primeira linha, o terceiro sozinho numa linha alinhado à esquerda em vez de centralizado — resultado de cada bloco conter várias linhas (afiliação + curso + NUSP), ficando largo demais para caber 3 por linha, mas não simétrico o suficiente para o layout de "2+1" do IEEEtran centralizar bem o terceiro.
+- **Decisão:** trocado para um único bloco de autoria (um `\IEEEauthorblockN` só, listando os 3 nomes com o NUSP entre parênteses ao lado de cada um, e um `\IEEEauthorblockA` compartilhado com a afiliação comum). Um bloco único é sempre centralizado pelo IEEEtran e quebra de linha automaticamente se for muito longo, evitando o problema de alinhamento assimétrico com 3 autores.
+- **Alternativas consideradas:** forçar centralização manual do terceiro bloco com comandos de espaçamento — descartado por ser mais frágil (depende da largura exata da coluna) que simplesmente usar um bloco compartilhado, já que os 3 autores têm a mesma afiliação.
+- **Impacto no artigo:** cabeçalho de autoria (topo da primeira página).
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

@@ -106,6 +106,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** ajustar o widget do dashboard para consultar por `Resultado` + `TipoEvento` juntos (ou via expressão `SEARCH`) — descartado por ser mais complexo (exigiria uma série por combinação de `TipoEvento`, que varia livremente por payload) sem trazer valor adicional, já que o dashboard só precisa do agregado por `Resultado`.
 - **Impacto no artigo:** bom exemplo real para a seção *Discussion*/*Limitations* — ilustra um erro comum e sutil de observabilidade (dimensões de métrica como parte da identidade, não como filtro livre) encontrado e corrigido durante o desenvolvimento, com evidência do antes/depois em `evidencias/screenshots/E8_dashboard.md`.
 
+## [2026-09-27 18h32] Limpeza da stack adiada para depois do artigo
+
+- **Contexto:** com os Passos 1–6 completos e todas as evidências (E1–E8) coletadas, o usuário pediu para explorar o Console AWS pessoalmente (ver o Dashboard, os recursos criados) antes de rodar `cleanup.sh`, e preferiu deixar a limpeza para depois de redigir o artigo (para poder voltar a conferir algo no Console/CLI se precisar durante a escrita).
+- **Decisão:** stack `psi5120-tf-serverless` permanece no ar; `cleanup.sh` só será executado após a redação do artigo estar concluída. Isso é seguro dentro do teto de US$10 combinado, já que nenhum recurso do stack tem custo fixo por hora (tudo pay-per-request/serverless).
+- **Alternativas consideradas:** limpar imediatamente e recriar se necessário — descartado por ser mais lento (redeploy leva 1-3 min) do que simplesmente manter no ar por mais algumas horas.
+- **Impacto no artigo:** nenhum diretamente.
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._

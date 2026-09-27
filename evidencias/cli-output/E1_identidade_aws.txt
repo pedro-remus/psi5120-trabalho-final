@@ -1,0 +1,6 @@
+PS C:\Users\pedro> aws sts get-caller-identity --profile pedro-psi5120
+{
+    "UserId": "AIDAS6WI3NXXZJDSVZFMM",
+    "Account": "203358432751",
+    "Arn": "arn:aws:iam::203358432751:user/pedro-psi5120"
+}

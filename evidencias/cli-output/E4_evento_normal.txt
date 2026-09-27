@@ -1,0 +1,30 @@
+=== 4.1 Evento normal: requisicao ===
+POST https://rey682jail.execute-api.us-east-1.amazonaws.com/events
+Body: {"tipo_evento": "teste_manual", "valor": 42.5}
+
+HTTP/1.1 202 Accepted
+Date: Sun, 27 Sep 2026 21:15:32 GMT
+Content-Type: application/json
+Content-Length: 143
+Connection: keep-alive
+Apigw-Requestid: EYIaMhIuIAMESFA=
+
+{"status": "aceito", "event_id": "ae96b81f-d640-4f30-98c8-8ab68901cd6f", "mensagem": "Evento publicado na fila para processamento assincrono."}
+
+=== 4.1 Verificacao no DynamoDB (aws dynamodb get-item) ===
+{
+    "Item": {
+        "ambiente": { "S": "trabalho-final" },
+        "valor": { "S": "42.5" },
+        "tipo_evento": { "S": "teste_manual" },
+        "request_id": { "S": "76534f50-f12b-532a-b6c9-2c637882b09d" },
+        "status": { "S": "processado" },
+        "event_id": { "S": "ae96b81f-d640-4f30-98c8-8ab68901cd6f" },
+        "timestamp_processado": { "S": "2026-09-27T21:15:33.627516+00:00" },
+        "modo": { "S": "sqs" }
+    }
+}
+
+Conclusao: evento aceito pela API (202), processado pela fila em ~1s (timestamp_processado
+praticamente igual ao horario da requisicao), e persistido no DynamoDB com status "processado".
+Pipeline ponta a ponta (API Gateway -> producer -> SQS -> consumer -> DynamoDB) validado.

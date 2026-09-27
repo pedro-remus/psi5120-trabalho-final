@@ -1,0 +1,657 @@
+==========================================================
+EVIDENCIA E2b - Snapshot completo da infraestrutura criada
+Gerado em: 2026-09-27 21:13:23Z (UTC)
+Stack: psi5120-tf-serverless | Regiao: us-east-1 | Profile: pedro-psi5120
+==========================================================
+
+
+### 1. CloudFormation - describe-stacks ###
+{
+    "Stacks": [
+        {
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "StackName": "psi5120-tf-serverless",
+            "ChangeSetId": "arn:aws:cloudformation:us-east-1:203358432751:changeSet/awscli-cloudformation-package-deploy-1790542849/54216557-30a3-4ed8-95d5-5710248ee6f1",
+            "Description": "PSI5120 - Trabalho Final. Extensao do laboratorio serverless da Aula 07 (Lambda + SQS + DLQ) com API Gateway (ingestao HTTP), DynamoDB (persistencia idempotente), alarme CloudWatch + SNS (observabilidade) e dashboard. Ver docs/DECISIONS.md para o raciocinio de cada escolha de arquitetura.\n",
+            "Parameters": [
+                {
+                    "ParameterKey": "NotificationEmail",
+                    "ParameterValue": "pedro.prda@usp.br"
+                },
+                {
+                    "ParameterKey": "Ambiente",
+                    "ParameterValue": "trabalho-final"
+                },
+                {
+                    "ParameterKey": "FalhaControlada",
+                    "ParameterValue": "true"
+                }
+            ],
+            "CreationTime": "2026-09-27T21:00:50.744000+00:00",
+            "LastUpdatedTime": "2026-09-27T21:00:56.672000+00:00",
+            "RollbackConfiguration": {},
+            "StackStatus": "CREATE_COMPLETE",
+            "DisableRollback": false,
+            "DeploymentConfig": {
+                "Mode": "STANDARD",
+                "DisableRollback": false
+            },
+            "NotificationARNs": [],
+            "Capabilities": [
+                "CAPABILITY_NAMED_IAM"
+            ],
+            "Outputs": [
+                {
+                    "OutputKey": "DashboardName",
+                    "OutputValue": "psi5120-tf-serverless-dashboard"
+                },
+                {
+                    "OutputKey": "ConsumerFunctionName",
+                    "OutputValue": "psi5120-tf-serverless-consumer"
+                },
+                {
+                    "OutputKey": "MainQueueUrl",
+                    "OutputValue": "https://sqs.us-east-1.amazonaws.com/203358432751/psi5120-tf-serverless-queue"
+                },
+                {
+                    "OutputKey": "DLQUrl",
+                    "OutputValue": "https://sqs.us-east-1.amazonaws.com/203358432751/psi5120-tf-serverless-dlq"
+                },
+                {
+                    "OutputKey": "ApiEndpoint",
+                    "OutputValue": "https://rey682jail.execute-api.us-east-1.amazonaws.com",
+                    "Description": "URL base da API. Envie POST para <ApiEndpoint>/events"
+                },
+                {
+                    "OutputKey": "DLQArn",
+                    "OutputValue": "arn:aws:sqs:us-east-1:203358432751:psi5120-tf-serverless-dlq"
+                },
+                {
+                    "OutputKey": "ProducerFunctionName",
+                    "OutputValue": "psi5120-tf-serverless-producer"
+                },
+                {
+                    "OutputKey": "EventsTableName",
+                    "OutputValue": "psi5120-tf-serverless-events"
+                },
+                {
+                    "OutputKey": "NotificationTopicArn",
+                    "OutputValue": "arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes"
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Trabalho",
+                    "Value": "Final"
+                },
+                {
+                    "Key": "Disciplina",
+                    "Value": "PSI5120"
+                }
+            ],
+            "EnableTerminationProtection": false,
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "CREATE_STACK",
+                    "OperationId": "79df4960-7185-42ce-a2f6-712c5c1ffeb9"
+                }
+            ]
+        }
+    ]
+}
+
+
+### 2. CloudFormation - describe-stack-resources (todos os 19 recursos) ###
+{
+    "StackResources": [
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "ConsumerEventSourceMapping",
+            "PhysicalResourceId": "a7b995a9-999b-483b-a8ab-7b942b12db84",
+            "ResourceType": "AWS::Lambda::EventSourceMapping",
+            "Timestamp": "2026-09-27T21:02:47.006000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "ConsumerFunction",
+            "PhysicalResourceId": "psi5120-tf-serverless-consumer",
+            "ResourceType": "AWS::Lambda::Function",
+            "Timestamp": "2026-09-27T21:02:33.198000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "ConsumerLogGroup",
+            "PhysicalResourceId": "/aws/lambda/psi5120-tf-serverless-consumer",
+            "ResourceType": "AWS::Logs::LogGroup",
+            "Timestamp": "2026-09-27T21:01:08.791000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "ConsumerRole",
+            "PhysicalResourceId": "psi5120-tf-serverless-consumer-role",
+            "ResourceType": "AWS::IAM::Role",
+            "Timestamp": "2026-09-27T21:02:23.181000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "DLQ",
+            "PhysicalResourceId": "https://sqs.us-east-1.amazonaws.com/203358432751/psi5120-tf-serverless-dlq",
+            "ResourceType": "AWS::SQS::Queue",
+            "Timestamp": "2026-09-27T21:02:01.741000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "Dashboard",
+            "PhysicalResourceId": "psi5120-tf-serverless-dashboard",
+            "ResourceType": "AWS::CloudWatch::Dashboard",
+            "Timestamp": "2026-09-27T21:01:01.726000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "DlqAlarm",
+            "PhysicalResourceId": "psi5120-tf-serverless-dlq-com-mensagens",
+            "ResourceType": "AWS::CloudWatch::Alarm",
+            "Timestamp": "2026-09-27T21:01:03.818000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "EventsTable",
+            "PhysicalResourceId": "psi5120-tf-serverless-events",
+            "ResourceType": "AWS::DynamoDB::Table",
+            "Timestamp": "2026-09-27T21:01:12.873000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "HttpApi",
+            "PhysicalResourceId": "rey682jail",
+            "ResourceType": "AWS::ApiGatewayV2::Api",
+            "Timestamp": "2026-09-27T21:01:00.862000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "HttpApiIntegration",
+            "PhysicalResourceId": "afdlgpg",
+            "ResourceType": "AWS::ApiGatewayV2::Integration",
+            "Timestamp": "2026-09-27T21:02:34.778000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "HttpApiRoute",
+            "PhysicalResourceId": "4y3sama",
+            "ResourceType": "AWS::ApiGatewayV2::Route",
+            "Timestamp": "2026-09-27T21:02:36.915000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "HttpApiStage",
+            "PhysicalResourceId": "$default",
+            "ResourceType": "AWS::ApiGatewayV2::Stage",
+            "Timestamp": "2026-09-27T21:01:03.552000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "MainQueue",
+            "PhysicalResourceId": "https://sqs.us-east-1.amazonaws.com/203358432751/psi5120-tf-serverless-queue",
+            "ResourceType": "AWS::SQS::Queue",
+            "Timestamp": "2026-09-27T21:02:03.692000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "NotificationSubscription",
+            "PhysicalResourceId": "arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes:278c4eb6-7819-4539-9d6b-29516cba8923",
+            "ResourceType": "AWS::SNS::Subscription",
+            "Timestamp": "2026-09-27T21:01:02.473000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "NotificationTopic",
+            "PhysicalResourceId": "arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes",
+            "ResourceType": "AWS::SNS::Topic",
+            "Timestamp": "2026-09-27T21:01:00.443000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "ProducerFunction",
+            "PhysicalResourceId": "psi5120-tf-serverless-producer",
+            "ResourceType": "AWS::Lambda::Function",
+            "Timestamp": "2026-09-27T21:02:32.884000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "ProducerInvokePermission",
+            "PhysicalResourceId": "psi5120-tf-serverless-ProducerInvokePermission-nQgeKv8QF0jR",
+            "ResourceType": "AWS::Lambda::Permission",
+            "Timestamp": "2026-09-27T21:02:34.648000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "ProducerLogGroup",
+            "PhysicalResourceId": "/aws/lambda/psi5120-tf-serverless-producer",
+            "ResourceType": "AWS::Logs::LogGroup",
+            "Timestamp": "2026-09-27T21:01:08.671000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "psi5120-tf-serverless",
+            "StackId": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+            "LogicalResourceId": "ProducerRole",
+            "PhysicalResourceId": "psi5120-tf-serverless-producer-role",
+            "ResourceType": "AWS::IAM::Role",
+            "Timestamp": "2026-09-27T21:02:22.940000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        }
+    ]
+}
+
+
+### 3. Lambda - producer function ###
+{
+    "Configuration": {
+        "FunctionName": "psi5120-tf-serverless-producer",
+        "FunctionArn": "arn:aws:lambda:us-east-1:203358432751:function:psi5120-tf-serverless-producer",
+        "Runtime": "python3.12",
+        "Role": "arn:aws:iam::203358432751:role/psi5120-tf-serverless-producer-role",
+        "Handler": "index.lambda_handler",
+        "CodeSize": 1014,
+        "Description": "",
+        "Timeout": 5,
+        "MemorySize": 128,
+        "LastModified": "2026-09-27T21:02:26.332+0000",
+        "CodeSha256": "/MUYm7WDkLqT6JES9eli95LiQQILw4JXJxPfKkDv8v4=",
+        "Version": "$LATEST",
+        "Environment": {
+            "Variables": {
+                "AMBIENTE": "trabalho-final",
+                "QUEUE_URL": "https://sqs.us-east-1.amazonaws.com/203358432751/psi5120-tf-serverless-queue"
+            }
+        },
+        "TracingConfig": {
+            "Mode": "PassThrough"
+        },
+        "RevisionId": "6263a5fd-7e5d-438a-b130-9a4ee90d111e",
+        "State": "Active",
+        "LastUpdateStatus": "Successful",
+        "PackageType": "Zip",
+        "Architectures": [
+            "x86_64"
+        ],
+        "EphemeralStorage": {
+            "Size": 512
+        },
+        "SnapStart": {
+            "ApplyOn": "None",
+            "OptimizationStatus": "Off"
+        },
+        "RuntimeVersionConfig": {
+            "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:36aeb19f3326e129d9f096dea0a3c6a9ca8dce2610e62d2b2060747602d863ae"
+        },
+        "LoggingConfig": {
+            "LogFormat": "Text",
+            "LogGroup": "/aws/lambda/psi5120-tf-serverless-producer"
+        }
+    },
+    "Code": {
+        "RepositoryType": "S3",
+        "Location": "https://prod-04-2014-tasks.s3.us-east-1.amazonaws.com/snapshots/203358432751/psi5120-tf-serverless-producer-e2fa5de5-4c7e-4421-b9da-07b30ea91cd8?versionId=2j6h9RJxMaeRYAv13o5mVHfiVzt5VYBV&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEFcaCXVzLWVhc3QtMSJHMEUCIQCzmrKS8s0wuIj5hW8mPsSnV7ixiXTo4OF0XKDT47YsIgIgYHehr9Fq9QqnL0M3k3d29HwHZCcD%2B0cRcGBBW3t27PcqiwIIHxAAGgw3NDk2Nzg5MDI4MzkiDObFekR3dEjbm4LXVCroAdub7XfQ9FpLiAV5azFSEXjGecdnIIyVa5h51OEXPnz1dUV0U%2F1uwxZTOLQcRZqR02LaUGzQ4CPH9CH48VLKVfk5sOe3dNgWbaYQ2gdfumXPIlcyr9aEhAmind9%2F0LAhq29CHp5J45KwmhLnf6Rou8vr%2B45U2kOOabkuvLMK5kzfYSv3ilbz3jhCgQxynlHZ%2BcFVSXFRhfsJWVmUEirpcMcS1819FYO8XEeO1O01A8S08zaxv7e4pfQAUomnFvj7gJaoUJ0g3Z27adT%2FkZEJQcLleabVcWua%2FZEan1nSocEb1ec4%2ByPIsL8wrdjk1QY6jQFV8rjJYPyjo2z%2BBn1c3hK5YQvlXCcydRzoQjEkKBAAxeXjoOevEfyU%2BYYzC%2Fw3Vsyr9QnSN1pVuob6cXJ%2B3L3Gkre2QBGw0fzsNTqvoM9fvKBwV62BnKAsp4lig0Yw5m5HOmEripu93x5A0tr1pl9CpbVzf96mlQLQVhFzHgJdKE12luJqPevH5ewIOOI%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260927T211328Z&X-Amz-SignedHeaders=host&X-Amz-Expires=600&X-Amz-Credential=ASIA25DCYHY3U67BGU6I%2F20260927%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=bbe74881d7152b043c0e5406e062395c15b45f675179f7308510dda37eba1b16"
+    },
+    "Tags": {
+        "Trabalho": "Final",
+        "Disciplina": "PSI5120",
+        "aws:cloudformation:stack-name": "psi5120-tf-serverless",
+        "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+        "aws:cloudformation:logical-id": "ProducerFunction"
+    }
+}
+
+
+### 4. Lambda - consumer function ###
+{
+    "Configuration": {
+        "FunctionName": "psi5120-tf-serverless-consumer",
+        "FunctionArn": "arn:aws:lambda:us-east-1:203358432751:function:psi5120-tf-serverless-consumer",
+        "Runtime": "python3.12",
+        "Role": "arn:aws:iam::203358432751:role/psi5120-tf-serverless-consumer-role",
+        "Handler": "index.lambda_handler",
+        "CodeSize": 1930,
+        "Description": "",
+        "Timeout": 5,
+        "MemorySize": 128,
+        "LastModified": "2026-09-27T21:02:26.790+0000",
+        "CodeSha256": "wa/XtcMOK4ViHX2VGacCIkZNyuKZZGMbWF+y+W+nRcM=",
+        "Version": "$LATEST",
+        "Environment": {
+            "Variables": {
+                "TABLE_NAME": "psi5120-tf-serverless-events",
+                "AMBIENTE": "trabalho-final",
+                "METRIC_NAMESPACE": "PSI5120/TrabalhoFinal",
+                "FALHA_CONTROLADA": "true"
+            }
+        },
+        "TracingConfig": {
+            "Mode": "PassThrough"
+        },
+        "RevisionId": "292ae70f-3409-49f6-b029-5c318f5ece84",
+        "State": "Active",
+        "LastUpdateStatus": "Successful",
+        "PackageType": "Zip",
+        "Architectures": [
+            "x86_64"
+        ],
+        "EphemeralStorage": {
+            "Size": 512
+        },
+        "SnapStart": {
+            "ApplyOn": "None",
+            "OptimizationStatus": "Off"
+        },
+        "RuntimeVersionConfig": {
+            "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:36aeb19f3326e129d9f096dea0a3c6a9ca8dce2610e62d2b2060747602d863ae"
+        },
+        "LoggingConfig": {
+            "LogFormat": "Text",
+            "LogGroup": "/aws/lambda/psi5120-tf-serverless-consumer"
+        }
+    },
+    "Code": {
+        "RepositoryType": "S3",
+        "Location": "https://prod-04-2014-tasks.s3.us-east-1.amazonaws.com/snapshots/203358432751/psi5120-tf-serverless-consumer-10ccf9f3-5558-423d-9952-0f98ded4227c?versionId=Xb8TMZaHB8RvsAxxDpAh7F8vOaD_iHk8&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEFMaCXVzLWVhc3QtMSJHMEUCIGJ9L8gbig9EkRJoXqxcYZ1ql7rj2NlmrKIAeMyseuz8AiEAlrsHM0tL3iRuDZrA%2BRKhYGa4SKNqZvqn16BPLWmVtrcqiwIIGxAAGgw3NDk2Nzg5MDI4MzkiDN6n%2Fbru2EoGtCQ3TCroAQAYonZTiWE%2B4jfF%2FYrcqy9ww%2BN6g3yD7uhTT21WMhEurExxapFx3UNY2usr2u9IBr5dOpv4SabT%2FuYx9SnNJOTTvOzkBPIEH0g2DPJIaSVyDurfozVC3PZGVOTahbnhmw%2FKLpcePV0%2FDYzWcW4n7DhXidKDrqktrdsr97eZ%2FrEmKweCVZ0iwA5xEmh5WtrTxBN7shvvpkW7IrDiO4DbYDusdr0qgMd4LkJocYT5%2F89vcSwTE3OV0N6VjkVWJ6uPdX5ov1PSZzam18Wqd2c4lPx2p1nobdxC4fdZJciylLI%2F3bQ3lU0JEMkwvNrj1QY6jQEG6n9YPrHKUZXQKItFtH9xfg46XNbniY5cWfGRmfTC%2FIqXpoG2StW48iHsJrHclE%2Fh1DPqg3ImhNEKIHUxfGaMDG97ULLt71CzZHfbDczZ87Js%2FMH0g1W8OtAjS5PqeGdYJ4tWKWMrMpvUuV3Hm8ZrmlxUiPmoXlkQR0IfAF8CbEKVcuQovI4qk3%2BeT0M%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260927T211329Z&X-Amz-SignedHeaders=host&X-Amz-Expires=600&X-Amz-Credential=ASIA25DCYHY33M323WDC%2F20260927%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=99b28f646beaa2602db5c18e39d796e4ddfdba7b6d712024af92034d8f49abce"
+    },
+    "Tags": {
+        "Trabalho": "Final",
+        "Disciplina": "PSI5120",
+        "aws:cloudformation:stack-name": "psi5120-tf-serverless",
+        "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad",
+        "aws:cloudformation:logical-id": "ConsumerFunction"
+    }
+}
+
+
+### 5. SQS - fila principal (atributos) ###
+{
+    "Attributes": {
+        "QueueArn": "arn:aws:sqs:us-east-1:203358432751:psi5120-tf-serverless-queue",
+        "ApproximateNumberOfMessages": "0",
+        "ApproximateNumberOfMessagesNotVisible": "0",
+        "ApproximateNumberOfMessagesDelayed": "0",
+        "CreatedTimestamp": "1790542861",
+        "LastModifiedTimestamp": "1790542861",
+        "VisibilityTimeout": "30",
+        "MaximumMessageSize": "1048576",
+        "MessageRetentionPeriod": "86400",
+        "DelaySeconds": "0",
+        "RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:us-east-1:203358432751:psi5120-tf-serverless-dlq\",\"maxReceiveCount\":2}",
+        "ReceiveMessageWaitTimeSeconds": "0",
+        "SqsManagedSseEnabled": "true"
+    }
+}
+
+
+### 6. SQS - DLQ (atributos) ###
+{
+    "Attributes": {
+        "QueueArn": "arn:aws:sqs:us-east-1:203358432751:psi5120-tf-serverless-dlq",
+        "ApproximateNumberOfMessages": "0",
+        "ApproximateNumberOfMessagesNotVisible": "0",
+        "ApproximateNumberOfMessagesDelayed": "0",
+        "CreatedTimestamp": "1790542859",
+        "LastModifiedTimestamp": "1790542859",
+        "VisibilityTimeout": "30",
+        "MaximumMessageSize": "1048576",
+        "MessageRetentionPeriod": "345600",
+        "DelaySeconds": "0",
+        "ReceiveMessageWaitTimeSeconds": "0",
+        "SqsManagedSseEnabled": "true"
+    }
+}
+
+
+### 7. DynamoDB - describe-table ###
+{
+    "Table": {
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "event_id",
+                "AttributeType": "S"
+            }
+        ],
+        "TableName": "psi5120-tf-serverless-events",
+        "KeySchema": [
+            {
+                "AttributeName": "event_id",
+                "KeyType": "HASH"
+            }
+        ],
+        "TableStatus": "ACTIVE",
+        "CreationDateTime": "2026-09-27T18:01:01.559000-03:00",
+        "ProvisionedThroughput": {
+            "NumberOfDecreasesToday": 0,
+            "ReadCapacityUnits": 0,
+            "WriteCapacityUnits": 0
+        },
+        "TableSizeBytes": 0,
+        "ItemCount": 0,
+        "TableArn": "arn:aws:dynamodb:us-east-1:203358432751:table/psi5120-tf-serverless-events",
+        "TableId": "613d99f2-11cc-412b-972f-00e749a33d98",
+        "BillingModeSummary": {
+            "BillingMode": "PAY_PER_REQUEST",
+            "LastUpdateToPayPerRequestDateTime": "2026-09-27T18:01:01.559000-03:00"
+        },
+        "DeletionProtectionEnabled": false,
+        "WarmThroughput": {
+            "ReadUnitsPerSecond": 12000,
+            "WriteUnitsPerSecond": 4000,
+            "Status": "ACTIVE"
+        }
+    }
+}
+
+
+### 8. API Gateway - get-api ###
+{
+    "ApiEndpoint": "https://rey682jail.execute-api.us-east-1.amazonaws.com",
+    "ApiId": "rey682jail",
+    "ApiKeySelectionExpression": "$request.header.x-api-key",
+    "CreatedDate": "2026-09-27T21:00:59+00:00",
+    "DisableExecuteApiEndpoint": false,
+    "IpAddressType": "ipv4",
+    "Name": "psi5120-tf-serverless-api",
+    "ProtocolType": "HTTP",
+    "RouteSelectionExpression": "$request.method $request.path",
+    "Tags": {
+        "Trabalho": "Final",
+        "Disciplina": "PSI5120",
+        "aws:cloudformation:stack-name": "psi5120-tf-serverless",
+        "aws:cloudformation:logical-id": "HttpApi",
+        "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:203358432751:stack/psi5120-tf-serverless/8526e910-bab6-11f1-b219-12ffc8347fad"
+    }
+}
+
+
+### 9. API Gateway - get-routes ###
+{
+    "Items": [
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationScopes": [],
+            "AuthorizationType": "NONE",
+            "RequestModels": {},
+            "RouteId": "4y3sama",
+            "RouteKey": "POST /events",
+            "Target": "integrations/afdlgpg"
+        }
+    ]
+}
+
+
+### 10. CloudWatch - describe-alarms ###
+{
+    "MetricAlarms": [
+        {
+            "AlarmName": "psi5120-tf-serverless-dlq-com-mensagens",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:203358432751:alarm:psi5120-tf-serverless-dlq-com-mensagens",
+            "AlarmDescription": "Dispara quando ha pelo menos 1 mensagem visivel na DLQ.",
+            "AlarmConfigurationUpdatedTimestamp": "2026-09-27T18:01:03.252000-03:00",
+            "ActionsEnabled": true,
+            "OKActions": [
+                "arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes"
+            ],
+            "AlarmActions": [
+                "arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes"
+            ],
+            "InsufficientDataActions": [],
+            "StateValue": "OK",
+            "StateReason": "Threshold Crossed: no datapoints were received for 1 period and 1 missing datapoint was treated as [NonBreaching].",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-09-27T21:02:08.535+0000\",\"statistic\":\"Maximum\",\"period\":60,\"recentDatapoints\":[],\"threshold\":1.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-09-27T21:00:00.000+0000\"}]}",
+            "StateUpdatedTimestamp": "2026-09-27T18:02:08.536000-03:00",
+            "MetricName": "ApproximateNumberOfMessagesVisible",
+            "Namespace": "AWS/SQS",
+            "Statistic": "Maximum",
+            "Dimensions": [
+                {
+                    "Name": "QueueName",
+                    "Value": "psi5120-tf-serverless-dlq"
+                }
+            ],
+            "Period": 60,
+            "EvaluationPeriods": 1,
+            "Threshold": 1.0,
+            "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-09-27T18:02:08.536000-03:00"
+        }
+    ],
+    "CompositeAlarms": [],
+    "LogAlarms": []
+}
+
+
+### 11. CloudWatch - get-dashboard ###
+{
+    "DashboardArn": "arn:aws:cloudwatch::203358432751:dashboard/psi5120-tf-serverless-dashboard",
+    "DashboardBody": "{\"widgets\":[{\"type\":\"metric\",\"x\":0,\"y\":0,\"width\":12,\"height\":6,\"properties\":{\"title\":\"Invocacoes e erros das Lambdas\",\"view\":\"timeSeries\",\"stacked\":false,\"region\":\"us-east-1\",\"metrics\":[[\"AWS/Lambda\",\"Invocations\",\"FunctionName\",\"psi5120-tf-serverless-producer\",{\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Errors\",\"FunctionName\",\"psi5120-tf-serverless-producer\",{\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Invocations\",\"FunctionName\",\"psi5120-tf-serverless-consumer\",{\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Errors\",\"FunctionName\",\"psi5120-tf-serverless-consumer\",{\"stat\":\"Sum\"}]]}},{\"type\":\"metric\",\"x\":12,\"y\":0,\"width\":12,\"height\":6,\"properties\":{\"title\":\"Mensagens visiveis na fila principal e na DLQ\",\"view\":\"timeSeries\",\"stacked\":false,\"region\":\"us-east-1\",\"metrics\":[[\"AWS/SQS\",\"ApproximateNumberOfMessagesVisible\",\"QueueName\",\"psi5120-tf-serverless-queue\"],[\"AWS/SQS\",\"ApproximateNumberOfMessagesVisible\",\"QueueName\",\"psi5120-tf-serverless-dlq\"]]}},{\"type\":\"metric\",\"x\":0,\"y\":6,\"width\":12,\"height\":6,\"properties\":{\"title\":\"Eventos processados por resultado (metrica customizada)\",\"view\":\"timeSeries\",\"stacked\":false,\"region\":\"us-east-1\",\"metrics\":[[\"PSI5120/TrabalhoFinal\",\"EventosProcessados\",\"Resultado\",\"gravado\"],[\"PSI5120/TrabalhoFinal\",\"EventosProcessados\",\"Resultado\",\"duplicata_idempotente\"],[\"PSI5120/TrabalhoFinal\",\"EventosProcessados\",\"Resultado\",\"falha_controlada\"]]}}]}",
+    "DashboardName": "psi5120-tf-serverless-dashboard"
+}
+
+
+### 12. SNS - get-topic-attributes ###
+{
+    "Attributes": {
+        "Policy": "{\"Version\":\"2008-10-17\",\"Id\":\"__default_policy_ID\",\"Statement\":[{\"Sid\":\"__default_statement_ID\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"*\"},\"Action\":[\"SNS:GetTopicAttributes\",\"SNS:SetTopicAttributes\",\"SNS:AddPermission\",\"SNS:RemovePermission\",\"SNS:DeleteTopic\",\"SNS:Subscribe\",\"SNS:ListSubscriptionsByTopic\",\"SNS:Publish\"],\"Resource\":\"arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes\",\"Condition\":{\"StringEquals\":{\"AWS:SourceOwner\":\"203358432751\"}}}]}",
+        "Owner": "203358432751",
+        "SubscriptionsPending": "0",
+        "TopicArn": "arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes",
+        "EffectiveDeliveryPolicy": "{\"http\":{\"defaultHealthyRetryPolicy\":{\"minDelayTarget\":20,\"maxDelayTarget\":20,\"numRetries\":3,\"numMaxDelayRetries\":0,\"numNoDelayRetries\":0,\"numMinDelayRetries\":0,\"backoffFunction\":\"linear\"},\"disableSubscriptionOverrides\":false,\"defaultRequestPolicy\":{\"headerContentType\":\"text/plain; charset=UTF-8\"}}}",
+        "SubscriptionsConfirmed": "1",
+        "DisplayName": "",
+        "SubscriptionsDeleted": "0"
+    }
+}
+
+
+### 13. SNS - list-subscriptions-by-topic ###
+{
+    "Subscriptions": [
+        {
+            "SubscriptionArn": "arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes:278c4eb6-7819-4539-9d6b-29516cba8923",
+            "Owner": "203358432751",
+            "Protocol": "email",
+            "Endpoint": "pedro.prda@usp.br",
+            "TopicArn": "arn:aws:sns:us-east-1:203358432751:psi5120-tf-serverless-alarmes"
+        }
+    ]
+}

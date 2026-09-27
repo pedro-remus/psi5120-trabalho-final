@@ -18,6 +18,7 @@ Os CSVs brutos do teste de carga ficam em `results/raw/` e os gráficos gerados 
 |---|---|---|---|
 | E1 | Saída de `aws sts get-caller-identity` confirmando o usuário IAM | Seção 2.3 | `cli-output/E1_identidade_aws.txt` |
 | E2 | Saída completa do `./scripts/deploy.sh` (tabela de Outputs) | Seção 3 | `cli-output/E2_deploy_outputs.txt` |
+| E2b | Snapshot completo dos 19 recursos criados (CloudFormation, Lambda, SQS, DynamoDB, API Gateway, CloudWatch, SNS), consultado via CLI logo após o deploy | Seção 3 | `cli-output/E2b_infraestrutura_criada.txt` |
 | E3 | E-mail de "Subscription Confirmation" do SNS, confirmado | Seção 3 | `screenshots/E3_confirmacao_sns.png` |
 | E4 | Resposta HTTP 202 do evento normal + item correspondente no `dynamodb scan` | Seção 4.1 | `cli-output/E4_evento_normal.txt` |
 | E5 | `ApproximateNumberOfMessages` da DLQ = 1 após falha controlada + print do e-mail de alarme recebido | Seção 4.2 | `cli-output/E5_dlq.txt`, `screenshots/E5_alarme_email.png` |

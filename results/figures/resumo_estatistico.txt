@@ -1,0 +1,9 @@
+Fonte: load_test_20260927T212101Z.csv
+Total de requisicoes: 100
+Sucesso (HTTP 202): 100 (100.0%)
+Latencia p50: 491.8 ms
+Latencia p95: 1611.3 ms
+Latencia p99: 1653.1 ms
+Latencia media: 599.2 ms
+Latencia minima: 447.4 ms
+Latencia maxima: 1661.9 ms

@@ -172,6 +172,13 @@ Formato de cada entrada: contexto → decisão → alternativas consideradas →
 - **Alternativas consideradas:** reverter o commit inteiro (`git revert`) — descartado porque desfaria também a correção de margem do artigo, que é uma correção válida e independente da decisão sobre menções à IA.
 - **Impacto no artigo:** nenhum (mudança restrita a este arquivo).
 
+## [2026-09-27 21h40] Quebras de linha mais limpas nos identificadores longos do artigo
+
+- **Contexto:** ao revisar o PDF final, `\seqsplit` (correção anterior para o estouro de margem) quebrava os identificadores em qualquer ponto, deixando órfãos feios — ex.: `ConditionalCheckFailedExceptio` seguido de uma linha só com `n)`.
+- **Decisão:** `\seqsplit` removido; substituído por um macro simples (`\newcommand{\brk}{\discretionary{}{}{}}`) aplicado manualmente nos limites naturais de palavra dentro dos identificadores CamelCase/snake_case (`Conditional\brk Check\brk Failed\brk Exception`, `Approximate\brk Number\brk Of\brk Messages\brk Visible`, etc.) — permite quebra de linha sem inserir hífen visível e sem separar uma única letra.
+- **Alternativas consideradas:** manter `\seqsplit` e aceitar a estética — descartado porque o artigo é o entregável final; vale o cuidado extra.
+- **Impacto no artigo:** Seções III-F, V-B, VI-C, VI-D (só formatação, nenhuma mudança de conteúdo).
+
 ---
 
 _Novas entradas devem ser adicionadas ao final deste arquivo, mantendo a ordem cronológica._
